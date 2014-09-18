@@ -1,0 +1,778 @@
+<?php
+
+/*  --------------------------------------------------------------------------
+ * Formulier om lid of abonnee te worden op SP.nl
+ * - Integreert met CiviCRM op een andere server via de API
+ * - CiviCRM-instellingen en welkomstcadeaus zijn te configureren via de admin
+ * kevin@levity.nl, 2014
+ * -------------------------------------------------------------------------- */
+
+// Typenamen en constanten die in principe vaststaan in CiviCRM (nog aanpassen voor live-installatie)
+define('SPAANMELDEN_LID_SP', 'Lid SP');
+define('SPAANMELDEN_LID_ROOD', 'Lid ROOD');
+define('SPAANMELDEN_LID_SPROOD', 'Lid SP en ROOD');
+define('SPAANMELDEN_ABO_TRIBUNE', 'Abonnee Tribune Betaald');
+define('SPAANMELDEN_ABO_SPANNING', 'Abonnee Spanning');
+define('SPAANMELDEN_CADEAU_GROEP_SP', 'Cadeau_SP');
+define('SPAANMELDEN_CADEAU_GROEP_ROOD', 'Cadeau_ROOD');
+define('SPAANMELDEN_ACTIVITY', 'Aanmelding via website');
+define('SPAANMELDEN_GENDER_VROUW', 1);
+define('SPAANMELDEN_GENDER_MAN', 2);
+define('SPAANMELDEN_GENDER_ANDERS', 3);
+define('SPAANMELDEN_WEBSITE_CONTACT', 804410);
+
+// Implements hook_menu
+function spaanmelden_menu() {
+    $items = array();
+
+    $items['doe-mee/aanmelden/lid'] = array(
+        'title'           => 'Lid worden',
+        'type'            => MENU_SUGGESTED_ITEM,
+        'page callback'   => 'spaanmelden_page_lid',
+        'access callback' => true,
+        'menu_name'       => 'main-menu',
+        'file'            => 'spaanmelden.page-lid.inc',
+    );
+
+    $items['doe-mee/aanmelden/tribune'] = array(
+        'title'           => 'Abonnee op de Tribune worden',
+        'type'            => MENU_SUGGESTED_ITEM,
+        'page callback'   => 'spaanmelden_page_tribune',
+        'access callback' => true,
+        'menu_name'       => 'main-menu',
+        'file'            => 'spaanmelden.page-tribune.inc',
+    );
+
+    $items['doe-mee/aanmelden/spanning'] = array(
+        'title'           => 'Abonnee op de Spanning worden',
+        'type'            => MENU_SUGGESTED_ITEM,
+        'page callback'   => 'spaanmelden_page_spanning',
+        'access callback' => true,
+        'menu_name'       => 'main-menu',
+        'file'            => 'spaanmelden.page-spanning.inc',
+    );
+
+    $items['doe-mee/aanmelden/bedankt'] = array(
+        'title'           => 'Bedankt voor uw aanmelding',
+        'type'            => MENU_CALLBACK,
+        'page callback'   => 'spaanmelden_page_thanks',
+        'access callback' => true,
+        'menu_name'       => 'main-menu',
+        'file'            => 'spaanmelden.page-actions.inc',
+    );
+
+    $items['doe-mee/aanmelden/fout'] = array(
+        'title'           => 'Er is een fout opgetreden',
+        'type'            => MENU_CALLBACK,
+        'page callback'   => 'spaanmelden_page_error',
+        'access callback' => true,
+        'menu_name'       => 'main-menu',
+        'file'            => 'spaanmelden.page-actions.inc',
+    );
+
+    $items['doe-mee/aanmelden/bevestig/%'] = array(
+        'title'           => 'Aanmelding bevestigen',
+        'type'            => MENU_CALLBACK,
+        'page callback'   => 'spaanmelden_page_validate',
+        'page arguments'  => array(3),
+        'access callback' => true,
+        'menu_name'       => 'main-menu',
+        'file'            => 'spaanmelden.page-actions.inc',
+    );
+
+    /* Postcode-lookup, voor nu via ajax
+    $items['doe-mee/aanmelden/postcode'] = array(
+        'title'           => 'Postcode-lookup via ajax',
+        'type'            => MENU_CALLBACK,
+        'page callback'   => 'spaanmelden_page_postcode',
+        'access callback' => true,
+        'menu_name'       => 'main-menu',
+        'file'            => 'spaanmelden.page-actions.inc',
+    );
+    */
+
+    /* Algemeen SP-item op configuratiepagina - hoort eigenlijk niet in deze module */
+    $items['admin/config/sp'] = array(
+        'title'            => 'SP',
+        'description'      => 'SP-specifieke instellingen',
+        'weight'           => -8,
+        'page callback'    => 'spaanmelden_admin_block',
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+    );
+
+    $items['admin/config/sp/aanmelden'] = array(
+        'title'            => 'Aanmeldformulieren',
+        'description'      => 'Aanmeldingen bekijken en de formulieren instellen.',
+        'type'             => MENU_NORMAL_ITEM,
+        'page callback'    => 'spaanmelden_view_submissions',
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+    );
+
+    $items['admin/config/sp/aanmelden/view'] = array(
+        'title'            => 'Inschrijvingen bekijken',
+        'type'             => MENU_DEFAULT_LOCAL_TASK,
+        'access arguments' => array('access administration pages'),
+    );
+
+    $items['admin/config/sp/aanmelden/detail/%'] = array(
+        'title'            => 'Inschrijving bekijken',
+        'type'             => MENU_CALLBACK,
+        'page callback'    => 'spaanmelden_submission_details',
+        'page arguments'   => array(5),
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+    );
+
+    $items['admin/config/sp/aanmelden/settings'] = array(
+        'title'            => 'Instellingen',
+        'description'      => 'Instellingen voor de aanmeldformulieren',
+        'type'             => MENU_LOCAL_TASK,
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('spaanmelden_admin_settings_form'),
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+    );
+
+    $items['admin/config/sp/aanmelden/submit'] = array(
+        'title'            => 'Wachtende inschrijvingen verwerken',
+        'type'             => MENU_CALLBACK,
+        'page callback'    => 'spaanmelden_submit_pending',
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+    );
+
+    return $items;
+}
+
+// Implements hook_theme
+function spaanmelden_theme($existing, $type, $theme, $path) {
+    return array(
+        'spaanmelden_progress' => array(
+            'template'  => 'spaanmelden-progress',
+            'variables' => array('steps' => array(), 'active_step' => null),
+        ),
+        'aanmelden_page'       => array(
+            'template'       => 'spaanmelden-page',
+            'render element' => 'element',
+        ),
+    );
+}
+
+// Implements hook_mail
+function spaanmelden_mail($key, &$message, $params) {
+    switch ($key) {
+        case 'verificatie':
+            _spaanmelden_get_mail($message, $params);
+            break;
+        case 'reminder':
+            _spaanmelden_get_reminder_mail($message, $params);
+            break;
+    }
+}
+
+// Implements hook_cron
+function spaanmelden_cron() {
+
+    $lastrun = variable_get('spaanmelden_cron_lastrun');
+    if($lastrun < (time() - 3600)) {
+        variable_set('spaanmelden_cron_lastrun', time());
+        spaanmelden_submit_pending();
+        spaanmelden_send_reminders();
+    }
+}
+
+// Functies om record toe te voegen in sp_aanmeldingen en een e-mailadres te valideren
+
+function _spaanmelden_insert_entry($params) {
+    $params['created'] = time();
+    return db_insert('sp_aanmeldingen')
+        ->fields($params)
+        ->execute();
+}
+
+function _spaanmelden_get_hash($membership_type, $lastname, $email) {
+    return md5($membership_type . $lastname . $email . time());
+}
+
+function _spaanmelden_get_mail(&$message, $params) {
+
+    if(!$params['hash'] || !$params['membership_type'] || !$params['form_state'])
+        throw new \Exception('Params hash, membership_type or form_state missing.');
+
+    $tables = _spaanmelden_format_tables($params['membership_type'], $params['form_state']);
+    $descr = _spaanmelden_membership_description($params['membership_type']);
+
+    global $base_url;
+    $validate_url = $base_url . '/doe-mee/aanmelden/bevestig/' . $params['hash'];
+
+    $message['subject'] = 'Bevestig je aanmelding als ' . $descr;
+    $message['body'] = array();
+    $message['body'][] = '<p>Bedankt voor je aanmelding als ' . $descr . '!<br />Klik op onderstaande link om je aanmelding te bevestigen. Als je niets doet wordt je aanmelding vanzelf verwijderd.</p>';
+    $message['body'][] = '<p>' . l($validate_url, $validate_url) . '</p>';
+    $message['body'][] = drupal_render($tables);
+    $message['body'][] = _spaanmelden_get_qline();
+}
+
+function _spaanmelden_get_reminder_mail(&$message, $params) {
+
+    if(!$params['hash'] || !$params['membership_type'])
+        throw new \Exception('Params hash or membership_type missing.');
+
+    $descr = _spaanmelden_membership_description($params['membership_type']);
+
+    global $base_url;
+    $validate_url = $base_url . '/doe-mee/aanmelden/bevestig/' . $params['hash'];
+
+    $message['subject'] = 'Herinnering: bevestig je aanmelding als ' . $descr;
+    $message['body'] = array();
+    $message['body'][] = '<p>Gisteren heb je je aangemeld als ' . $descr . '.<br />Je hebt je aanmelding echter nog niet bevestigd. Klik op onderstaande link om je aanmelding te bevestigen en deze door te geven aan de SP-ledenadministratie.</p>';
+    $message['body'][] = '<p>' . l($validate_url, $validate_url) . '</p>';
+    $message['body'][] = _spaanmelden_get_qline();
+}
+
+// Functies voor opmaak mails/pagina's, grotendeels van github.com/spwebteam
+
+function _spaanmelden_membership_description($membership_type, $short = false) {
+    switch ($membership_type) {
+        case 'lid_sp':
+            return ($short ? 'SP' : 'lid van de SP');
+        case 'lid_sprood':
+            return ($short ? 'SP + ROOD' : 'lid van de SP en ROOD');
+        case 'lid_rood':
+            return ($short ? 'ROOD' : 'lid van ROOD');
+        case 'tribune':
+            return ($short ? 'Tribune' : 'abonnee van de Tribune');
+        case 'spanning':
+            return ($short ? 'Spanning' : 'abonnee van Spanning');
+        default:
+            return '[' . ($short ? 'onbekend' : 'onbekend lidmaatschap') . ']';
+    }
+}
+
+function _spaanmelden_fieldset_table($fieldset, $keys = false) {
+    $rows = array();
+    if($keys === false) {
+        $keys = element_children($fieldset);
+    }
+
+    foreach ($keys as $key) {
+        $element = $fieldset[$key];
+        if(isset($element['#access']) && empty($element['#access'])) {
+            continue;
+        }
+
+        if(isset($element['#type'])) {
+            switch ($element['#type']) {
+                case 'textfield':
+                case 'numberfield':
+                case 'emailfield':
+                case 'telfield':
+                    $rows[check_plain($element['#title'])] = check_plain($element['#default_value']);
+                    break;
+                case 'select':
+                case 'radios':
+                    if(!empty($element['#option_groups'])) {
+                        $groups = $element['#option_groups'];
+                        $_groups = array();
+                        foreach ($groups as $label => $keys) {
+                            foreach ($keys as $k) {
+                                $_groups[$k] = $label;
+                            }
+                        }
+
+                        if(!empty($_groups[$element['#default_value']])) {
+                            $rows[check_plain($element['#title'])] = check_plain($_groups[$element['#default_value']]) . ' ' . $element['#options'][$element['#default_value']];
+                        } else {
+                            $rows[check_plain($element['#title'])] = $element['#options'][$element['#default_value']];
+                        }
+                    } else {
+                        $rows[check_plain($element['#title'])] = $element['#options'][$element['#default_value']];
+                    }
+                    break;
+            }
+        }
+    }
+
+    return $rows;
+}
+
+function _spaanmelden_format_tables($membership_type, &$form_state) {
+    switch($membership_type) {
+        case 'tribune':
+            $steps = spaanmelden_form_tribune_form_steps();
+            break;
+        case 'spanning':
+            $steps = spaanmelden_form_spanning_form_steps();
+            break;
+        default:
+            $steps = spaanmelden_form_lid_form_steps();
+    }
+
+    $tables = array();
+
+    foreach ($steps as $key => $_info) {
+        $callback = $_info['callback'] . '_tables';
+
+        if(function_exists($callback)) {
+            $callback($tables, $form_state);
+        }
+    }
+
+    foreach ($tables as $label => $rows) {
+        $_rows = array();
+        foreach ($rows as $key => $value) {
+            $_rows[] = array(
+                array('header' => true, 'data' => $key),
+                array('data' => $value),
+            );
+        }
+
+        $result[] = array(
+            'title' => array('#markup' => '<h3 class="h2">' . $label . '</h3>'),
+            'info'  => array('#theme' => 'table', '#rows' => $_rows),
+        );
+    }
+
+    return $result;
+}
+
+function _spaanmelden_form_default_value($form_state, $parents, $default_value = '') {
+    if(!isset($form_state['storage']['data'])) {
+        return $default_value;
+    }
+
+    $value = drupal_array_get_nested_value($form_state['storage']['data'], $parents);
+    if(!isset($value)) {
+        return $default_value;
+    }
+
+    return $value;
+}
+
+function _spaanmelden_get_qline() {
+    return '<p>Voor verdere vragen over uw aanmelding kun je contact opnemen met de
+            ledenadministratie: 088-243 55 40 of <a href="mailto:administratie@sp.nl">administratie@sp.nl</a>.</p>';
+}
+
+// From: http://monshouwer.org/code-snipets/check-iban-bank-account-number-in-php/
+function _spaanmelden_check_iban($iban) {
+    // Normalize input (remove spaces and make upcase)
+    $iban = strtoupper(str_replace(' ', '', $iban));
+
+    if(preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/', $iban)) {
+        $country = substr($iban, 0, 2);
+        $check = intval(substr($iban, 2, 2));
+        $account = substr($iban, 4);
+
+        // To numeric representation
+        $search = range('A', 'Z');
+        foreach (range(10, 35) as $tmp)
+            $replace[] = strval($tmp);
+        $numstr = str_replace($search, $replace, $account . $country . '00');
+
+        // Calculate checksum
+        $checksum = intval(substr($numstr, 0, 1));
+        for ($pos = 1; $pos < strlen($numstr); $pos++) {
+            $checksum *= 10;
+            $checksum += intval(substr($numstr, $pos, 1));
+            $checksum %= 97;
+        }
+
+        return ((98 - $checksum) == $check);
+    } else
+        return false;
+}
+
+// Herinneringsmails sturen aan aanmelders die nog niet bevestigd hebben
+function spaanmelden_send_reminders() {
+
+    $unverified = db_select('sp_aanmeldingen', 's')
+        ->fields('s')
+        ->condition('created', time()-86400, '<')
+        ->isNull('verified')
+        ->isNull('reminded')
+        ->execute();
+
+    if($unverified) {
+
+        while ($record = $unverified->fetchAssoc()) {
+
+            $mail = drupal_mail(
+                'spaanmelden', 'reminder', $record['email'], LANGUAGE_NONE,
+                array(
+                    'hash'            => $record['hash'],
+                    'membership_type' => $record['membership_type'],
+                    'format'          => SWIFTMAILER_FORMAT_HTML,
+                )
+            );
+
+            if(!empty($mail['send'])) {
+
+                db_update('sp_aanmeldingen')
+                    ->fields(array(
+                        'reminded' => time(),
+                    ))
+                    ->condition('id', $record['id'])
+                    ->execute();
+            }
+        }
+    }
+}
+
+// Koppeling met CiviCRM
+
+// Voer de wachtende inschrijvingen in CiviCRM in (aangeroepen vanuit cron)
+function spaanmelden_submit_pending() {
+
+    $pending = db_select('sp_aanmeldingen', 's')
+        ->fields('s')
+        ->isNotNull('verified')
+        ->isNull('submitted')
+        ->execute();
+
+    if($pending) {
+        while ($record = $pending->fetchAssoc()) {
+
+            try {
+                _spaanmelden_add_membership($record);
+                $error = null;
+            } catch (\Exception $e) {
+                $error = $e->getMessage();
+            }
+
+            db_update('sp_aanmeldingen')
+                ->fields(array(
+                    'submitted' => time(),
+                    'errormsg'  => $error,
+                ))
+                ->condition('id', $record['id'])
+                ->execute();
+        }
+    }
+    return true;
+}
+
+// Include CiviCRM API class and return civicrm_api3
+function _spaanmelden_get_civicrm_api() {
+    global $spaanmelden_civicrm_api;
+    if(!$spaanmelden_civicrm_api) {
+        require_once('spaanmelden.civicrm_api.php');
+        $spaanmelden_civicrm_api = new civicrm_api3 (array(
+            'server'  => variable_get('spaanmelden_civicrm_server'),
+            'path'    => variable_get('spaanmelden_civicrm_path'),
+            'key'     => variable_get('spaanmelden_civicrm_key'),
+            'api_key' => variable_get('spaanmelden_civicrm_userkey'),
+        ));
+    }
+    return $spaanmelden_civicrm_api;
+}
+
+// Cache resultaten van lookups (bijv ID's en welkomstcadeaus), standaard voor 8 uur
+function _spaanmelden_cache_data($cacheName, $callback, $limit = 28800) {
+    $data = cache_get($cacheName);
+    if($data)
+        return $data->data;
+
+    if(is_callable($callback)) {
+        $data = call_user_func($callback);
+        if($data)
+            cache_set($cacheName, $data, 'cache', $limit);
+        return $data;
+    }
+
+    return false;
+}
+
+// Haal de ID op die bij een lidmaatschap (Lid SP e.d.) hoort
+function _spaanmelden_get_membership_type_id($typeString) {
+
+    return _spaanmelden_cache_data('spaanmelden_type_id_' . $typeString, function () use ($typeString) {
+
+        $api = _spaanmelden_get_civicrm_api();
+        try {
+            $api->MembershipType->Getsingle(array(
+                'name' => $typeString,
+            ));
+            $mt = $api->result();
+            if($mt)
+                return $mt->id;
+
+        } catch (\Exception $e) {
+            return false;
+        }
+    });
+}
+
+// Haal de ID op die bij een status hoort ('Nieuw', 'In behandeling', etc)
+function _spaanmelden_get_membership_status_id($statusString) {
+
+    return _spaanmelden_cache_data('spaanmelden_status_id_' . $statusString, function () use ($statusString) {
+
+        $api = _spaanmelden_get_civicrm_api();
+        try {
+            $api->MembershipStatus->Getsingle(array(
+                'name' => $statusString,
+            ));
+            $ms = $api->result();
+            if($ms)
+                return $ms->id;
+
+        } catch (\Exception $e) {
+            return false;
+        }
+    });
+}
+
+// Haal de ID op die bij het locatietype 'Thuis' hoort
+function _spaanmelden_get_location_type_id() {
+
+    return _spaanmelden_cache_data('spaanmelden_location_type', function () {
+
+        $api = _spaanmelden_get_civicrm_api();
+        try {
+            $api->LocationType->Get(array(
+                'name' => 'Thuis',
+            ));
+            $lt = $api->result();
+            if($lt)
+                return $lt->id;
+
+        } catch (\Exception $e) {
+            return false;
+        }
+    });
+}
+
+// Haal een lijst van landcodes en country ID's op
+function _spaanmelden_get_country_ids() {
+
+    return _spaanmelden_cache_data('spaanmelden_country_ids', function () {
+
+        $api = _spaanmelden_get_civicrm_api();
+        try {
+            $api->Constant->Get(array(
+                'name'       => 'countryIsoCode',
+                'sequential' => 0,
+            ));
+            $codes = $api->result();
+            if($codes)
+                return (array)$codes->values;
+
+        } catch (\Exception $e) {
+            return false;
+        }
+    });
+}
+
+// Haal een lijst van welkomstcadeaus voor het SP- of ROOD-lidmaatschap op
+function _spaanmelden_get_cadeaus($groupName) {
+
+    return _spaanmelden_cache_data('spaanmelden_sp_cadeaus_' . $groupName, function () use ($groupName) {
+
+        $api = _spaanmelden_get_civicrm_api();
+        try {
+            $api->CustomField->Getsingle(array(
+                'name' => $groupName,
+            ));
+            $customField = $api->result();
+            if(!$customField)
+                return false;
+
+            $api->OptionValue->Get(array(
+                'option_group_id' => $customField->option_group_id,
+                'is_active'       => 1,
+            ));
+            $data = $api->result();
+            if($data) {
+
+                $ret = array();
+                foreach ($data->values as $cadeau)
+                    $ret[$cadeau->value] = $cadeau->name;
+                return $ret;
+            }
+
+        } catch (\Exception $e) {
+            return false;
+        }
+    });
+}
+
+// Doe een postcode-lookup op basis van postcode en huisnummer (API-method van Jaap voor Pro6pp)
+function _spaanmelden_postcode_lookup($postcode, $huisnummer) {
+
+    $api = _spaanmelden_get_civicrm_api();
+    $api->PostcodeNL->get(array(
+        'postcode'   => $postcode,
+        'huisnummer' => $huisnummer,
+    ));
+    $res = $api->result();
+
+    if($res && !$res->is_error && count($res->values) > 0) {
+        return array_shift($res->values);
+    }
+    return array();
+}
+
+// Voeg een nieuw contact toe aan CiviCRM, inclusief een lidmaatschap of abonnement
+function _spaanmelden_add_membership($data = array()) {
+
+    // We nemen aan dat de gender-waardes wel redelijk vaststaan
+    switch ($data['gender']) {
+        case 'v':
+            $gender = SPAANMELDEN_GENDER_VROUW;
+            break;
+        case 'm':
+            $gender = SPAANMELDEN_GENDER_MAN;
+            break;
+        case 'a':
+            $gender = SPAANMELDEN_GENDER_ANDERS;
+            break;
+        default:
+            $gender = null;
+            break;
+    }
+
+    // Create contact
+    $api = _spaanmelden_get_civicrm_api();
+    $api->Contact->create(array(
+        'contact_type' => 'Individual',
+        'first_name'   => $data['firstname'],
+        'middle_name'  => $data['middlename'],
+        'last_name'    => $data['lastname'],
+        'nick_name'    => $data['initials'],
+        'display_name' => ($data['firstname'] ? $data['firstname'] : $data['initials']) . '+' . ($data['middlename'] ? $data['middlename'] . '+' : '') . $data['lastname'],
+        'birth_date'   => $data['birthdate'],
+        'gender_id'    => $gender,
+    ));
+    $res = $api->result();
+    if(!$res || $res->is_error || !$res->id) {
+        throw new \Exception('CiviCRM API error (Contact): ' . $res->error_message);
+        return false;
+    }
+
+    // Get contact ID and location type ID
+    $contact_id = $res->id;
+    $locationTypeId = _spaanmelden_get_location_type_id();
+
+    // Get country ID
+    $countryId = array_search($data['country'], _spaanmelden_get_country_ids());
+
+    // Add home address
+    $api->Address->create(array(
+        'contact_id'           => $contact_id,
+        'is_primary'           => 1,
+        'location_type_id'     => $locationTypeId,
+        'street_name'          => $data['street'],
+        'street_number'        => $data['housenumber'],
+        'street_number_suffix' => $data['housenumber_suffix'],
+        'city'                 => $data['city'],
+        'postal_code'          => $data['zipcode'],
+        'country_id'           => $countryId,
+    ));
+    $res = $api->result();
+    if(!$res || $res->is_error) {
+        throw new \Exception('CiviCRM API error (Address): ' . $res->error_message);
+        return false;
+    }
+
+    // Add email address
+    $api->Email->create(array(
+        'contact_id'       => $contact_id,
+        'email'            => $data['email'],
+        'location_type_id' => $locationTypeId,
+    ));
+    $res = $api->result();
+    if(!$res || $res->is_error) {
+        throw new \Exception('CiviCRM API error (Email): ' . $res->error_message);
+        return false;
+    }
+
+    // Add phone number(s)
+    if($data['phone']) {
+
+        $api->Phone->create(array(
+            'contact_id'       => $contact_id,
+            'phone'            => $data['phone'],
+            'location_type_id' => $locationTypeId,
+            'phone_type_id'    => 1, // Staan deze vast? Zie geen lookup-tabel
+        ));
+        $res = $api->result();
+        if(!$res || $res->is_error) {
+            throw new \Exception('CiviCRM API error (Phone): ' . $res->error_message);
+            return false;
+        }
+    }
+    if($data['phone_mobile']) {
+
+        $api->Phone->create(array(
+            'contact_id'       => $contact_id,
+            'phone'            => $data['phone_mobile'],
+            'location_type_id' => $locationTypeId,
+            'phone_type_id'    => 2,
+        ));
+        $res = $api->result();
+        if(!$res || $res->is_error) {
+            throw new \Exception('CiviCRM API error (Mobile): ' . $res->error_message);
+            return false;
+        }
+    }
+
+    // Add membership
+    // Later verder uitsplitsen, bijdrage en IBAN-accounts instellen <-- TODO Jaap voor API
+    switch ($data['membership_type']) {
+
+        case 'lid_sp':
+            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_LID_SP);
+            break;
+        case 'lid_sprood':
+            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_LID_SPROOD);
+            break;
+        case 'lid_rood':
+            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_LID_ROOD);
+            break;
+        case 'tribune':
+            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_ABO_TRIBUNE);
+            break;
+        case 'spanning':
+            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_ABO_SPANNING);
+            break;
+    }
+
+    $api->Membership->Create(array(
+        'contact_id'         => $contact_id,
+        'membership_type_id' => $membershipTypeId,
+        'start_date'         => date('Ymdhis', $data['verified']),
+        'join_date'          => date('Ymdhis', $data['verified']),
+        'is_override'        => 1,
+        'status_id'          => _spaanmelden_get_membership_status_id('Pending'),
+        'membership_source'  => 'Website',
+        'cadeau_4'           => 2,
+    ));
+    $res = $api->result();
+    if(!$res || $res->is_error) {
+        throw new \Exception('CiviCRM API error (Membership): ' . $res->error_message);
+        return false;
+    }
+
+    // Add activity record
+    $data['submitted'] = time();
+    $api->Activity->Create(array(
+        'source_contact_id'  => SPAANMELDEN_WEBSITE_CONTACT,
+        'target_contact_id'  => $contact_id,
+        'activity_name'      => SPAANMELDEN_ACTIVITY,
+        'activity_subject'   => 'Aanmelding als ' . _spaanmelden_membership_description($data['membership_type']),
+        'activity_date_time' => date('YmdHis', $data['verified']),
+        'details'            => 'De volgende aanmelding is via de website ontvangen op ' . date('d-m-Y H:i:s', $data['created']) . ' en bevestigd op ' . date('d-m-Y H:i:s', $data['verified']) . ':<br /><br />' . nl2br(print_r($data, true)),
+    ));
+    $res = $api->result();
+    if(!$res || $res->is_error) {
+        throw new \Exception('CiviCRM API error (Activity): ' . $res->error_message);
+        return false;
+    }
+
+    // TODO: contribution, bank_account, payment_method, welcome_present_sp, welcome_present_rood
+
+    return true;
+}

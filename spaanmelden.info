@@ -1,0 +1,9 @@
+name = SP Aanmeldformulieren
+description = Aanmeldformulieren om SP-lid of abonnee te worden op SP.nl. Integratie met CiviCRM via de API.
+version = 1.0
+core = 7.x
+package = sprbs
+
+dependencies[] = entityreference_autocomplete
+dependencies[] = html5_tools
+dependencies[] = date
