@@ -11,122 +11,153 @@ function spaanmelden_install() { }
 function spaanmelden_schema() {
     $schema['sp_aanmeldingen'] = array(
         'fields'      => array(
-            'id'     => array(
+            'id'                   => array(
+                'type' => 'serial',
+            ),
+            'membership_type'      => array(
+                'type'     => 'varchar',
+                'length'   => 10,
+                'nullable' => false,
+                'default'  => 'lid_sp',
+            ),
+            'hash'                 => array(
+                'type'   => 'varchar',
+                'length' => 32,
+            ),
+            'initials'             => array(
+                'type'   => 'varchar',
+                'length' => 15,
+            ),
+            'firstname'            => array(
+                'type'   => 'varchar',
+                'length' => 150,
+            ),
+            'middlename'           => array(
+                'type'   => 'varchar',
+                'length' => 20,
+            ),
+            'lastname'             => array(
+                'type'   => 'varchar',
+                'length' => 150,
+            ),
+            'gender'               => array(
+                'type'   => 'varchar',
+                'length' => 1,
+            ),
+            'birthdate'            => array(
+                'type'   => 'varchar',
+                'length' => 20,
+            ),
+            'email'                => array(
+                'type'   => 'varchar',
+                'length' => 120,
+            ),
+            'phone'                => array(
+                'type'   => 'varchar',
+                'length' => 25,
+            ),
+            'phone_mobile'         => array(
+                'type'   => 'varchar',
+                'length' => 25,
+            ),
+            'country'              => array(
+                'type'   => 'varchar',
+                'length' => 100,
+            ),
+            'zipcode'              => array(
+                'type'   => 'varchar',
+                'length' => 20,
+            ),
+            'housenumber'          => array(
+                'type'   => 'varchar',
+                'length' => 10,
+            ),
+            'housenumber_suffix'   => array(
+                'type'   => 'varchar',
+                'length' => 20,
+            ),
+            'street'               => array(
+                'type'   => 'varchar',
+                'length' => 200,
+            ),
+            'city'                 => array(
+                'type'   => 'varchar',
+                'length' => 200,
+            ),
+            'contribution'         => array(
+                'type'   => 'numeric',
+                'length' => 10,
+            ),
+            'bank_account'         => array(
+                'type'   => 'varchar',
+                'length' => 32,
+            ),
+            'payment_method'       => array(
+                'type'   => 'varchar',
+                'length' => 20,
+            ),
+            'welcome_present_sp'   => array(
+                'type'   => 'varchar',
+                'length' => 20,
+            ),
+            'welcome_present_rood' => array(
+                'type'   => 'varchar',
+                'length' => 20,
+            ),
+            'created'              => array(
+                'type'     => 'int',
+                'length'   => 11,
+                'nullable' => false,
+            ),
+            'verified'             => array(
+                'type'     => 'int',
+                'length'   => 11,
+                'nullable' => true,
+            ),
+            'reminded'             => array(
+                'type'     => 'int',
+                'length'   => 11,
+                'nullable' => true,
+            ),
+            'submitted'            => array(
+                'type'     => 'int',
+                'length'   => 11,
+                'nullable' => true,
+            ),
+            'errormsg'             => array(
+                'type'     => 'text',
+                'nullable' => true,
+            ),
+            'contact_id'           => array(
+                'type'     => 'int',
+                'length'   => 11,
+                'nullable' => true,
+            ),
+        ),
+        'primary key' => array('id'),
+    );
+    $schema['sp_aanmeldingen_gifts'] = array(
+        'fields'      => array(
+            'id'              => array(
                 'type' => 'serial',
             ),
             'membership_type' => array(
                 'type'     => 'varchar',
-                'length' => 10,
+                'length'   => 10,
                 'nullable' => false,
-                'default' => 'lid_sp',
+                'default'  => 'lid_sp',
             ),
-            'hash'         => array(
-                'type'     => 'varchar',
-                'length' => 32,
-            ),
-            'initials'      => array(
-                'type'     => 'varchar',
-                'length' => 15,
-            ),
-            'firstname'      => array(
-                'type'     => 'varchar',
+            'internal_name'   => array(
+                'type'   => 'varchar',
                 'length' => 150,
             ),
-            'middlename'      => array(
-                'type'     => 'varchar',
-                'length' => 20,
-            ),
-            'lastname'      => array(
-                'type'     => 'varchar',
+            'name'            => array(
+                'type'   => 'varchar',
                 'length' => 150,
             ),
-            'gender'      => array(
-                'type'     => 'varchar',
-                'length' => 1,
-            ),
-            'birthdate'      => array(
-                'type'     => 'varchar',
-                'length' => 20,
-            ),
-            'email'      => array(
-                'type'     => 'varchar',
-                'length' => 120,
-            ),
-            'phone'      => array(
-                'type'     => 'varchar',
-                'length' => 25,
-            ),
-            'phone_mobile'      => array(
-                'type'     => 'varchar',
-                'length' => 25,
-            ),
-            'country'      => array(
-                'type'     => 'varchar',
-                'length' => 100,
-            ),
-            'zipcode'      => array(
-                'type'     => 'varchar',
-                'length' => 20,
-            ),
-            'housenumber'      => array(
-                'type'     => 'varchar',
-                'length' => 10,
-            ),
-            'housenumber_suffix'      => array(
-                'type'     => 'varchar',
-                'length' => 20,
-            ),
-            'street'      => array(
-                'type'     => 'varchar',
-                'length' => 200,
-            ),
-            'city'      => array(
-                'type'     => 'varchar',
-                'length' => 200,
-            ),
-            'contribution'      => array(
-                'type'     => 'numeric',
-                'length' => 10,
-            ),
-            'bank_account'      => array(
-                'type'     => 'varchar',
-                'length' => 32,
-            ),
-            'payment_method'      => array(
-                'type'     => 'varchar',
-                'length' => 20,
-            ),
-            'welcome_present_sp'      => array(
-                'type'     => 'varchar',
-                'length' => 20,
-            ),
-            'welcome_present_rood'      => array(
-                'type'     => 'varchar',
-                'length' => 20,
-            ),
-            'created'      => array(
-                'type'     => 'int',
+            'position'        => array(
+                'type'   => 'int',
                 'length' => 11,
-                'nullable' => false,
-            ),
-            'verified'      => array(
-                'type'     => 'int',
-                'length' => 11,
-                'nullable' => true,
-            ),
-            'reminded'      => array(
-                'type'     => 'int',
-                'length' => 11,
-                'nullable' => true,
-            ),
-            'submitted'      => array(
-                'type'     => 'int',
-                'length' => 11,
-                'nullable' => true,
-            ),
-            'errormsg'      => array(
-                'type'     => 'text',
-                'nullable' => true,
             ),
         ),
         'primary key' => array('id'),

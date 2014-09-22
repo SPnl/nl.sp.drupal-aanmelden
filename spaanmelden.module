@@ -7,20 +7,6 @@
  * kevin@levity.nl, 2014
  * -------------------------------------------------------------------------- */
 
-// Typenamen en constanten die in principe vaststaan in CiviCRM (nog aanpassen voor live-installatie)
-define('SPAANMELDEN_LID_SP', 'Lid SP');
-define('SPAANMELDEN_LID_ROOD', 'Lid ROOD');
-define('SPAANMELDEN_LID_SPROOD', 'Lid SP en ROOD');
-define('SPAANMELDEN_ABO_TRIBUNE', 'Abonnee Tribune Betaald');
-define('SPAANMELDEN_ABO_SPANNING', 'Abonnee Spanning');
-define('SPAANMELDEN_CADEAU_GROEP_SP', 'Cadeau_SP');
-define('SPAANMELDEN_CADEAU_GROEP_ROOD', 'Cadeau_ROOD');
-define('SPAANMELDEN_ACTIVITY', 'Aanmelding via website');
-define('SPAANMELDEN_GENDER_VROUW', 1);
-define('SPAANMELDEN_GENDER_MAN', 2);
-define('SPAANMELDEN_GENDER_ANDERS', 3);
-define('SPAANMELDEN_WEBSITE_CONTACT', 804410);
-
 // Implements hook_menu
 function spaanmelden_menu() {
     $items = array();
@@ -110,19 +96,61 @@ function spaanmelden_menu() {
         'file'             => 'spaanmelden.page-admin.inc',
     );
 
-    $items['admin/config/sp/aanmelden/view'] = array(
-        'title'            => 'Inschrijvingen bekijken',
+    $items['admin/config/sp/aanmelden/submissions'] = array(
+        'title'            => 'Inschrijvingen',
         'type'             => MENU_DEFAULT_LOCAL_TASK,
         'access arguments' => array('access administration pages'),
+        'weight'           => -2,
     );
 
-    $items['admin/config/sp/aanmelden/detail/%'] = array(
+    $items['admin/config/sp/aanmelden/submission/%'] = array(
         'title'            => 'Inschrijving bekijken',
         'type'             => MENU_CALLBACK,
         'page callback'    => 'spaanmelden_submission_details',
         'page arguments'   => array(5),
         'access arguments' => array('access administration pages'),
         'file'             => 'spaanmelden.page-admin.inc',
+        'weight'           => -1,
+    );
+
+    $items['admin/config/sp/aanmelden/gifts'] = array(
+        'title'            => 'Welkomstgeschenken',
+        'type'             => MENU_LOCAL_TASK,
+        'page callback'    => 'spaanmelden_gifts_view',
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+        'weight'           => 1,
+    );
+
+    $items['admin/config/sp/aanmelden/gifts/edit'] = array(
+        'title'            => 'Geschenk toevoegen',
+        'type'             => MENU_CALLBACK,
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('spaanmelden_gifts_form'),
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+        'weight'           => 2,
+    );
+
+    $items['admin/config/sp/aanmelden/gifts/edit/%'] = array(
+        'title'            => 'Geschenk bewerken',
+        'type'             => MENU_CALLBACK,
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('spaanmelden_gifts_form', 1),
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+        'weight'           => 3,
+    );
+
+    $items['admin/config/sp/aanmelden/texts'] = array(
+        'title'            => 'Teksten',
+        'description'      => 'Teksten voor de aanmeldformulieren',
+        'type'             => MENU_LOCAL_TASK,
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('spaanmelden_admin_texts_form'),
+        'access arguments' => array('access administration pages'),
+        'file'             => 'spaanmelden.page-admin.inc',
+        'weight'           => 11,
     );
 
     $items['admin/config/sp/aanmelden/settings'] = array(
@@ -133,14 +161,16 @@ function spaanmelden_menu() {
         'page arguments'   => array('spaanmelden_admin_settings_form'),
         'access arguments' => array('access administration pages'),
         'file'             => 'spaanmelden.page-admin.inc',
+        'weight'           => 12,
     );
 
     $items['admin/config/sp/aanmelden/submit'] = array(
         'title'            => 'Wachtende inschrijvingen verwerken',
         'type'             => MENU_CALLBACK,
-        'page callback'    => 'spaanmelden_submit_pending',
+        'page callback'    => 'spaanmelden_admin_submit_pending',
         'access arguments' => array('access administration pages'),
         'file'             => 'spaanmelden.page-admin.inc',
+        'weight'           => 13,
     );
 
     return $items;
@@ -299,7 +329,7 @@ function _spaanmelden_fieldset_table($fieldset, $keys = false) {
 }
 
 function _spaanmelden_format_tables($membership_type, &$form_state) {
-    switch($membership_type) {
+    switch ($membership_type) {
         case 'tribune':
             $steps = spaanmelden_form_tribune_form_steps();
             break;
@@ -390,7 +420,7 @@ function spaanmelden_send_reminders() {
 
     $unverified = db_select('sp_aanmeldingen', 's')
         ->fields('s')
-        ->condition('created', time()-86400, '<')
+        ->condition('created', time() - 86400, '<')
         ->isNull('verified')
         ->isNull('reminded')
         ->execute();
@@ -436,7 +466,7 @@ function spaanmelden_submit_pending() {
         while ($record = $pending->fetchAssoc()) {
 
             try {
-                _spaanmelden_add_membership($record);
+                $contact_id = _spaanmelden_add_membership($record);
                 $error = null;
             } catch (\Exception $e) {
                 $error = $e->getMessage();
@@ -444,8 +474,9 @@ function spaanmelden_submit_pending() {
 
             db_update('sp_aanmeldingen')
                 ->fields(array(
-                    'submitted' => time(),
-                    'errormsg'  => $error,
+                    'submitted'  => time(),
+                    'errormsg'   => $error,
+                    'contact_id' => $contact_id,
                 ))
                 ->condition('id', $record['id'])
                 ->execute();
@@ -567,36 +598,31 @@ function _spaanmelden_get_country_ids() {
 }
 
 // Haal een lijst van welkomstcadeaus voor het SP- of ROOD-lidmaatschap op
-function _spaanmelden_get_cadeaus($groupName) {
+function _spaanmelden_get_gifts($groupName) {
 
-    return _spaanmelden_cache_data('spaanmelden_sp_cadeaus_' . $groupName, function () use ($groupName) {
+    $gifts = db_select('sp_aanmeldingen_gifts', 'sg')
+        ->fields('sg')
+        ->condition('membership_type', $groupName, '=')
+        ->orderBy('position', 'ASC')
+        ->execute()
+        ->fetchAll();
 
-        $api = _spaanmelden_get_civicrm_api();
-        try {
-            $api->CustomField->Getsingle(array(
-                'name' => $groupName,
-            ));
-            $customField = $api->result();
-            if(!$customField)
-                return false;
-
-            $api->OptionValue->Get(array(
-                'option_group_id' => $customField->option_group_id,
-                'is_active'       => 1,
-            ));
-            $data = $api->result();
-            if($data) {
-
-                $ret = array();
-                foreach ($data->values as $cadeau)
-                    $ret[$cadeau->value] = $cadeau->name;
-                return $ret;
-            }
-
-        } catch (\Exception $e) {
-            return false;
+    $ret = array();
+    if($gifts) {
+        foreach ($gifts as $g) {
+            $ret[$g->id] = $g->name;
         }
-    });
+    }
+
+    return $ret;
+}
+
+function _spaanmelden_get_gift_internal_name($giftId) {
+    return db_select('sp_aanmeldingen_gifts', 'sg')
+        ->fields('sg', array('internal_name'))
+        ->condition('id', $giftId, '=')
+        ->execute()
+        ->fetchField(0);
 }
 
 // Doe een postcode-lookup op basis van postcode en huisnummer (API-method van Jaap voor Pro6pp)
@@ -618,16 +644,16 @@ function _spaanmelden_postcode_lookup($postcode, $huisnummer) {
 // Voeg een nieuw contact toe aan CiviCRM, inclusief een lidmaatschap of abonnement
 function _spaanmelden_add_membership($data = array()) {
 
-    // We nemen aan dat de gender-waardes wel redelijk vaststaan
+    // Gender-waardes: magic numbers, maar deze veranderen *echt* vrijwel nooit...
     switch ($data['gender']) {
         case 'v':
-            $gender = SPAANMELDEN_GENDER_VROUW;
+            $gender = 1;
             break;
         case 'm':
-            $gender = SPAANMELDEN_GENDER_MAN;
+            $gender = 2;
             break;
         case 'a':
-            $gender = SPAANMELDEN_GENDER_ANDERS;
+            $gender = 3;
             break;
         default:
             $gender = null;
@@ -649,7 +675,7 @@ function _spaanmelden_add_membership($data = array()) {
     $res = $api->result();
     if(!$res || $res->is_error || !$res->id) {
         throw new \Exception('CiviCRM API error (Contact): ' . $res->error_message);
-        return false;
+        return null;
     }
 
     // Get contact ID and location type ID
@@ -674,7 +700,7 @@ function _spaanmelden_add_membership($data = array()) {
     $res = $api->result();
     if(!$res || $res->is_error) {
         throw new \Exception('CiviCRM API error (Address): ' . $res->error_message);
-        return false;
+        return $contact_id;
     }
 
     // Add email address
@@ -686,7 +712,7 @@ function _spaanmelden_add_membership($data = array()) {
     $res = $api->result();
     if(!$res || $res->is_error) {
         throw new \Exception('CiviCRM API error (Email): ' . $res->error_message);
-        return false;
+        return $contact_id;
     }
 
     // Add phone number(s)
@@ -701,7 +727,7 @@ function _spaanmelden_add_membership($data = array()) {
         $res = $api->result();
         if(!$res || $res->is_error) {
             throw new \Exception('CiviCRM API error (Phone): ' . $res->error_message);
-            return false;
+            return $contact_id;
         }
     }
     if($data['phone_mobile']) {
@@ -715,64 +741,164 @@ function _spaanmelden_add_membership($data = array()) {
         $res = $api->result();
         if(!$res || $res->is_error) {
             throw new \Exception('CiviCRM API error (Mobile): ' . $res->error_message);
-            return false;
+            return $contact_id;
         }
     }
 
     // Add membership
-    // Later verder uitsplitsen, bijdrage en IBAN-accounts instellen <-- TODO Jaap voor API
     switch ($data['membership_type']) {
 
         case 'lid_sp':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_LID_SP);
+            $membershipTypeId = _spaanmelden_get_membership_type_id(variable_get('spaanmelden_id_lid_sp'));
             break;
         case 'lid_sprood':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_LID_SPROOD);
-            break;
-        case 'lid_rood':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_LID_ROOD);
+            $membershipTypeId = _spaanmelden_get_membership_type_id(variable_get('spaanmelden_id_lid_sprood'));
             break;
         case 'tribune':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_ABO_TRIBUNE);
+            $membershipTypeId = _spaanmelden_get_membership_type_id(variable_get('spaanmelden_id_abo_tribune'));
             break;
         case 'spanning':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(SPAANMELDEN_ABO_SPANNING);
+            $membershipTypeId = _spaanmelden_get_membership_type_id(variable_get('spaanmelden_id_abo_spanning'));
             break;
     }
 
-    $api->Membership->Create(array(
+    $membershipData = array(
         'contact_id'         => $contact_id,
         'membership_type_id' => $membershipTypeId,
         'start_date'         => date('Ymdhis', $data['verified']),
         'join_date'          => date('Ymdhis', $data['verified']),
         'is_override'        => 1,
-        'status_id'          => _spaanmelden_get_membership_status_id('Pending'),
+        'status_id'          => _spaanmelden_get_membership_status_id(variable_get('spaanmelden_id_status')),
         'membership_source'  => 'Website',
-        'cadeau_4'           => 2,
-    ));
-    $res = $api->result();
-    if(!$res || $res->is_error) {
-        throw new \Exception('CiviCRM API error (Membership): ' . $res->error_message);
-        return false;
+    );
+    if($data['membership_type'] == 'lid_sp') {
+        $spGiftField = variable_get('spaanmelden_id_custom_gift_sp');
+        $membershipData[$spGiftField] = $data['welcome_present_sp'];
     }
+    if($data['membership_type'] == 'lid_sprood') {
+        $roodGiftField = variable_get('spaanmelden_id_custom_gift_rood');
+        $membershipData[$roodGiftField] = $data['welcome_present_rood'];
+    }
+
+    $api->Membership->Create($membershipData);
+    $res = $api->result();
+
+    if(!$res || $res->is_error) {
+        throw new \Exception('CiviCRM API error (Membership): ' . $res->error_message . ' ' . print_r($membershipData, true));
+        return $contact_id;
+    }
+
+    /* TODO Add contribution
+    $contributionData = array(
+        'contact_id' => $contact_id,
+        'total_amount' => $data['contribution'],
+        'financial_type_id' => 2, // contributie
+        'payment_instrument_id' => 1, // payment_method
+        'contribution_status_id' => 0, // open
+    );
+    if($data['bank_account']) {
+        $ibanField = variable_get('spaanmelden_id_custom_iban');
+        $contributionData[$ibanField] = $data['bank_account'];
+    }
+
+    $api->Contribution->Create($contributionData);
+    $res = $api->result();
+
+    if(!$res || $res->is_error) {
+        throw new \Exception('CiviCRM API error (Contribution): ' . $res->error_message . ' ' . print_r($contributionData, true));
+        return $contact_id;
+    }
+    */
 
     // Add activity record
     $data['submitted'] = time();
+    $activityData = '';
+    foreach ($data as $key => $value) {
+        list($key, $value) = _spaanmelden_friendly_field_data($key, $value, true);
+        if($key)
+            $activityData .= $key . ': ' . $value . '<br />';
+    }
+
     $api->Activity->Create(array(
-        'source_contact_id'  => SPAANMELDEN_WEBSITE_CONTACT,
+        'source_contact_id'  => variable_get('spaanmelden_id_activity_contact'),
         'target_contact_id'  => $contact_id,
-        'activity_name'      => SPAANMELDEN_ACTIVITY,
+        'activity_name'      => variable_get('spaanmelden_id_activity'),
         'activity_subject'   => 'Aanmelding als ' . _spaanmelden_membership_description($data['membership_type']),
         'activity_date_time' => date('YmdHis', $data['verified']),
-        'details'            => 'De volgende aanmelding is via de website ontvangen op ' . date('d-m-Y H:i:s', $data['created']) . ' en bevestigd op ' . date('d-m-Y H:i:s', $data['verified']) . ':<br /><br />' . nl2br(print_r($data, true)),
+        'details'            => 'De volgende aanmelding is via de website ontvangen op ' . date('d-m-Y H:i:s', $data['created']) . ' en bevestigd op ' . date('d-m-Y H:i:s', $data['verified']) . ':<br /><br />' . $activityData,
     ));
     $res = $api->result();
     if(!$res || $res->is_error) {
         throw new \Exception('CiviCRM API error (Activity): ' . $res->error_message);
-        return false;
+        return $contact_id;
     }
 
-    // TODO: contribution, bank_account, payment_method, welcome_present_sp, welcome_present_rood
+    return $contact_id;
+}
 
-    return true;
+function _spaanmelden_friendly_field_data($key, $value, $activity = false) {
+    switch ($key) {
+        case 'hash':
+            return array(null, null);
+        case 'errormsg':
+            if($value != '')
+                return array('Error', '<span style="color:#f00;font-weight:bold;">' . $value . '</span>');
+            return array(null, null);
+        case 'id':
+            return array('Website-ID', $value);
+        case 'membership_type':
+            return array('Lidmaatschapstype', _spaanmelden_membership_description($value, true));
+        case 'initials':
+            return array('Voorletters', $value);
+        case 'firstname':
+            return array('Voornaam', $value);
+        case 'middlename':
+            return array('Tussenvoegsel', $value);
+        case 'lastname':
+            return array('Achternaam', $value);
+        case 'gender':
+            return array('Geslacht', strtoupper($value));
+        case 'birthdate':
+            return array('Geboortedatum', $value);
+        case 'email':
+            return array('E-mail', $value);
+        case 'phone':
+            return array('Telefoon', $value);
+        case 'phone_mobile':
+            return array('Mobiel', $value);
+        case 'country':
+            return array('Land', $value);
+        case 'zipcode':
+            return array('Postcode', $value);
+        case 'housenumber':
+            return array('Huisnummer', $value);
+        case 'housenumber_suffix':
+            return array('Huisnummertoevoeging', $value);
+        case 'street':
+            return array('Straat', $value);
+        case 'city':
+            return array('Plaats', $value);
+        case 'contribution':
+            return array('Bijdrage', number_format($value, 2, ',', '.'));
+        case 'bank_account':
+            return array('IBAN', $value);
+        case 'payment_method':
+            return array('Betaalwijze', ucfirst($value));
+        case 'welcome_present_sp':
+            return array('Welkomstcadeau SP', _spaanmelden_get_gift_internal_name($value));
+        case 'welcome_present_rood':
+            return array('Welkomstcadeau ROOD', _spaanmelden_get_gift_internal_name($value));
+        case 'created':
+            return array('Aangemeld', $value ? date('d-m-Y H:i:s', $value) : '-');
+        case 'verified':
+            return array('Bevestigd', $value ? date('d-m-Y H:i:s', $value) : '-');
+        case 'reminded':
+            return array('Herinnerd', $value ? date('d-m-Y H:i:s', $value) : '-');
+        case 'submitted':
+            return array('Toegevoegd', $value ? date('d-m-Y H:i:s', $value) : '-');
+        case 'contact_id':
+            if($value > 0 && !$activity)
+                return array('CiviCRM-ID', $value . '&nbsp;&nbsp;&nbsp; <a href="' . variable_get('spaanmelden_civicrm_server') . '/civicrm/contact/view?reset=1&cid=' . $value . '">Bekijk contact in CiviCRM</a>');
+            return array(null, null);
+    }
 }

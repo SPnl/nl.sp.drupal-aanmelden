@@ -200,7 +200,8 @@ function spaanmelden_form_lid_form_ajax_callback($form, &$form_state) {
     if(!in_array('birthdate', $form_state['triggering_element']['#parents']) &&
         !in_array('country', $form_state['triggering_element']['#parents']) &&
         !in_array('zipcode', $form_state['triggering_element']['#parents']) &&
-        !in_array('housenumber', $form_state['triggering_element']['#parents'])
+        !in_array('housenumber', $form_state['triggering_element']['#parents']) &&
+        !in_array('payment_method', $form_state['triggering_element']['#parents'])
     ) {
         array_unshift($commands, array('command' => 'scrollToWrapper'));
     }
@@ -627,20 +628,26 @@ function spaanmelden_form_lid_form_donation($form, &$form_state) {
         ),
     );
 
-    $form['payment']['bank_account'] = array(
-        '#title'         => 'Rekeningnummer (IBAN)',
-        '#type'          => 'textfield',
-        '#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'bank_account'), ''),
-        '#required'      => true,
-        '#description'   => '<p><small>Vind uw IBAN nummer op de site <a href="https://www.ibanbicservice.nl/SingleRequest.aspx" target="_blank">IBAN BIC Service</a></small></p>',
-    );
-
     $form['payment']['payment_method'] = array(
         '#title'         => 'Ik betaal met',
         '#type'          => 'radios',
         '#options'       => array('incasso' => 'Automatische incasso', 'acceptgiro' => 'Acceptgiro (&euro; 24 per jaar)'),
         '#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'payment_method'), null),
         '#required'      => true,
+        '#ajax'          => array(
+            'wrapper'  => 'spaanmelden_form',
+            'callback' => 'spaanmelden_form_lid_form_ajax_callback',
+            'progress' => 'none',
+        ),
+    );
+
+    $form['payment']['bank_account'] = array(
+        '#title'         => 'Rekeningnummer (IBAN)',
+        '#type'          => 'textfield',
+        '#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'bank_account'), ''),
+        '#required'      => true,
+        '#access'        => _spaanmelden_form_lid_is_incasso($form_state),
+        '#description'   => '<p><small>Vind uw IBAN nummer op de site <a href="https://www.ibanbicservice.nl/SingleRequest.aspx" target="_blank">IBAN BIC Service</a></small></p>',
     );
 
     return $form;
@@ -680,8 +687,10 @@ function spaanmelden_form_lid_form_donation_review(&$info, &$form_state) {
         $contribution = intval($contribution) / 100.0;
     }
 
+    $rood = _spaanmelden_form_default_value($form_state, array('rood', 'rood'));
+    $description = _spaanmelden_membership_description($rood ? 'lid_sprood' : 'lid_sp');
     $info['payment'] = array(
-        '#markup' => '<p class="payment-info">Ik word lid van de SP. Ik betaal per kwartaal &euro; ' . number_format($contribution, 2, ',', '.') . ' aan contributie.</p><p>Twee weken voor de eerste afschrijving ontvang je via internetbankieren bericht wanneer de contributie wordt afgeschreven.</p>',
+        '#markup' => '<p class="payment-info">Ik word ' . $description . '. Ik betaal per kwartaal &euro; ' . number_format($contribution, 2, ',', '.') . ' aan contributie.</p><p>Twee weken voor de eerste afschrijving ontvang je via internetbankieren bericht wanneer de contributie wordt afgeschreven.</p>',
         '#weight' => 100,
     );
 }
@@ -727,9 +736,9 @@ function spaanmelden_form_lid_form_gift($form, &$form_state) {
     );
 
     $form['welcome_present']['normal'] = array(
-        '#title'         => 'Maak een keuze',
+        '#title'         => 'Welkomstcadeau SP',
         '#type'          => 'select',
-        '#options'       => _spaanmelden_get_cadeaus(SPAANMELDEN_CADEAU_GROEP_SP),
+        '#options'       => _spaanmelden_get_gifts('lid_sp'),
         '#default_value' => _spaanmelden_form_default_value($form_state, array('welcome_present', 'normal'), ''),
         '#required'      => true,
     );
@@ -740,9 +749,9 @@ function spaanmelden_form_lid_form_gift($form, &$form_state) {
     }
 
     $form['welcome_present']['rood'] = array(
-        '#title'         => 'Kies uw ROOD welkomstcadeau',
+        '#title'         => 'Welkomstcadeau ROOD',
         '#type'          => 'select',
-        '#options'       => _spaanmelden_get_cadeaus(SPAANMELDEN_CADEAU_GROEP_ROOD),
+        '#options'       => _spaanmelden_get_gifts('lid_rood'),
         '#default_value' => _spaanmelden_form_default_value($form_state, array('welcome_present', 'rood'), ''),
         '#required'      => true,
         '#access'        => $visible,
@@ -790,7 +799,7 @@ function spaanmelden_form_lid_form_review($form, &$form_state) {
 }
 
 function spaanmelden_form_lid_form_review_review(&$info, &$form_state) {
-    $info['tables'] =  _spaanmelden_format_tables('lid', $form_state);
+    $info['tables'] = _spaanmelden_format_tables('lid', $form_state);
     $info['#weight'] = 10;
 }
 
@@ -825,4 +834,9 @@ function _spaanmelden_form_lid_lt_27(&$form_state) {
     }
 
     return $lt_27;
+}
+
+function _spaanmelden_form_lid_is_incasso(&$form_state) {
+    $paymentMethod = drupal_array_get_nested_value($form_state, array('values', 'payment', 'payment_method'));
+    return ($paymentMethod == 'incasso');
 }
