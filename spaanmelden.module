@@ -9,6 +9,7 @@
 
 // Implements hook_menu
 function spaanmelden_menu() {
+
     $items = array();
 
     $items['doe-mee/aanmelden/lid'] = array(
@@ -77,15 +78,6 @@ function spaanmelden_menu() {
     );
     */
 
-    /* Algemeen SP-item op configuratiepagina - hoort eigenlijk niet in deze module */
-    $items['admin/config/sp'] = array(
-        'title'            => 'SP',
-        'description'      => 'SP-specifieke instellingen',
-        'weight'           => -8,
-        'page callback'    => 'spaanmelden_admin_block',
-        'access arguments' => array('access administration pages'),
-        'file'             => 'spaanmelden.page-admin.inc',
-    );
 
     $items['admin/config/sp/aanmelden'] = array(
         'title'            => 'Aanmeldformulieren',
@@ -485,21 +477,6 @@ function spaanmelden_submit_pending() {
     return true;
 }
 
-// Include CiviCRM API class and return civicrm_api3
-function _spaanmelden_get_civicrm_api() {
-    global $spaanmelden_civicrm_api;
-    if(!$spaanmelden_civicrm_api) {
-        require_once('spaanmelden.civicrm_api.php');
-        $spaanmelden_civicrm_api = new civicrm_api3 (array(
-            'server'  => variable_get('spaanmelden_civicrm_server'),
-            'path'    => variable_get('spaanmelden_civicrm_path'),
-            'key'     => variable_get('spaanmelden_civicrm_key'),
-            'api_key' => variable_get('spaanmelden_civicrm_userkey'),
-        ));
-    }
-    return $spaanmelden_civicrm_api;
-}
-
 // Cache resultaten van lookups (bijv ID's en welkomstcadeaus), standaard voor 8 uur
 function _spaanmelden_cache_data($cacheName, $callback, $limit = 28800) {
     $data = cache_get($cacheName);
@@ -521,7 +498,7 @@ function _spaanmelden_get_membership_type_id($typeString) {
 
     return _spaanmelden_cache_data('spaanmelden_type_id_' . $typeString, function () use ($typeString) {
 
-        $api = _spaanmelden_get_civicrm_api();
+        $api = spciviapi_get_api();
         try {
             $api->MembershipType->Getsingle(array(
                 'name' => $typeString,
@@ -541,7 +518,7 @@ function _spaanmelden_get_membership_status_id($statusString) {
 
     return _spaanmelden_cache_data('spaanmelden_status_id_' . $statusString, function () use ($statusString) {
 
-        $api = _spaanmelden_get_civicrm_api();
+        $api = spciviapi_get_api();
         try {
             $api->MembershipStatus->Getsingle(array(
                 'name' => $statusString,
@@ -561,7 +538,7 @@ function _spaanmelden_get_location_type_id() {
 
     return _spaanmelden_cache_data('spaanmelden_location_type', function () {
 
-        $api = _spaanmelden_get_civicrm_api();
+        $api = spciviapi_get_api();
         try {
             $api->LocationType->Get(array(
                 'name' => 'Thuis',
@@ -581,7 +558,7 @@ function _spaanmelden_get_country_ids() {
 
     return _spaanmelden_cache_data('spaanmelden_country_ids', function () {
 
-        $api = _spaanmelden_get_civicrm_api();
+        $api = spciviapi_get_api();
         try {
             $api->Constant->Get(array(
                 'name'       => 'countryIsoCode',
@@ -628,7 +605,7 @@ function _spaanmelden_get_gift_internal_name($giftId) {
 // Doe een postcode-lookup op basis van postcode en huisnummer (API-method van Jaap voor Pro6pp)
 function _spaanmelden_postcode_lookup($postcode, $huisnummer) {
 
-    $api = _spaanmelden_get_civicrm_api();
+    $api = spciviapi_get_api();
     $api->PostcodeNL->get(array(
         'postcode'   => $postcode,
         'huisnummer' => $huisnummer,
@@ -661,7 +638,7 @@ function _spaanmelden_add_membership($data = array()) {
     }
 
     // Create contact
-    $api = _spaanmelden_get_civicrm_api();
+    $api = spciviapi_get_api();
     $api->Contact->create(array(
         'contact_type' => 'Individual',
         'first_name'   => $data['firstname'],
@@ -898,7 +875,7 @@ function _spaanmelden_friendly_field_data($key, $value, $activity = false) {
             return array('Toegevoegd', $value ? date('d-m-Y H:i:s', $value) : '-');
         case 'contact_id':
             if($value > 0 && !$activity)
-                return array('CiviCRM-ID', $value . '&nbsp;&nbsp;&nbsp; <a href="' . variable_get('spaanmelden_civicrm_server') . '/civicrm/contact/view?reset=1&cid=' . $value . '">Bekijk contact in CiviCRM</a>');
+                return array('CiviCRM-ID', $value . '&nbsp;&nbsp;&nbsp; <a href="' . variable_get('spciviapi_civicrm_server') . '/civicrm/contact/view?reset=1&cid=' . $value . '">Bekijk contact in CiviCRM</a>');
             return array(null, null);
     }
 }

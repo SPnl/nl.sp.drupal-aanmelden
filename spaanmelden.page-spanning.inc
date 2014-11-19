@@ -167,13 +167,26 @@ function spaanmelden_form_spanning_submit($form, &$form_state) {
 
 function spaanmelden_form_spanning_form_ajax_callback($form, &$form_state) {
     $result = $form['ajax_container'];
-
     $commands = ajax_prepare_response($result);
-    if(!in_array('country', $form_state['triggering_element']['#parents']) &&
-        !in_array('zipcode', $form_state['triggering_element']['#parents']) &&
-        !in_array('housenumber', $form_state['triggering_element']['#parents'])
-    ) {
+
+    // Scroll up on errors
+    $noscrollTriggers = array('country', 'zipcode', 'housenumber', 'payment_method');
+    $noScroll = false;
+    foreach($noscrollTriggers as $nsTrigger) {
+        if(in_array($nsTrigger, $form_state['triggering_element']['#parents']))
+            $noScroll = true;
+    }
+    if(!$noScroll) {
         array_unshift($commands, array('command' => 'scrollToWrapper'));
+    }
+
+    // Focus on element after postcode callback
+    $postcodeTriggers = array('country', 'zipcode', 'housenumber');
+    foreach($postcodeTriggers as $trigger) {
+        if(in_array($trigger, $form_state['triggering_element']['#parents'])) {
+            array_unshift($commands, array('command' => 'focusElement', 'element' => 'form-item-address-' . $trigger));
+            break;
+        }
     }
 
     $output = array(

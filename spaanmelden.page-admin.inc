@@ -43,43 +43,7 @@ function spaanmelden_admin_settings_form() {
     $form = array();
 
     $form['spaanmelden_description_civicrm'] = array(
-        '#markup' => '<h3>Instellingen</h3><p>Stel hieronder de API-instellingen in voor de integratie met CiviCRM.</p>',
-    );
-
-    $form['spaanmelden_civicrm_server'] = array(
-        '#type'          => 'textfield',
-        '#title'         => 'Server',
-        '#default_value' => variable_get('spaanmelden_civicrm_server', 'https://test.civicrm.sp.nl'),
-        '#description'   => 'URL van de CiviCRM-installatie.',
-        '#required'      => true,
-    );
-
-    $form['spaanmelden_civicrm_path'] = array(
-        '#type'          => 'textfield',
-        '#title'         => 'API-pad',
-        '#default_value' => variable_get('spaanmelden_civicrm_path', 'sites/test/modules/civicrm/extern/rest.php'),
-        '#description'   => 'Pad naar de API (bijvoorbeeld: sites/test/modules/civicrm/extern/rest.php)',
-        '#required'      => true,
-    );
-
-    $form['spaanmelden_civicrm_key'] = array(
-        '#type'          => 'textfield',
-        '#title'         => 'Key',
-        '#default_value' => variable_get('spaanmelden_civicrm_key'),
-        '#description'   => 'CiviCRM-key (uit civicrm.settings.php).',
-        '#required'      => true,
-    );
-
-    $form['spaanmelden_civicrm_userkey'] = array(
-        '#type'          => 'textfield',
-        '#title'         => 'User-key',
-        '#default_value' => variable_get('spaanmelden_civicrm_userkey'),
-        '#description'   => 'CiviCRM API-key (uit civicrm_contact).',
-        '#required'      => true,
-    );
-
-    $form['spaanmelden_description_ids'] = array(
-        '#markup' => '<br /><h3>ID\'s</h3>',
+        '#markup' => '<h3>Instellingen</h3><p>Configureer hieronder de integratie met CiviCRM.</p>',
     );
 
     $form['spaanmelden_id_lid_sp'] = array(
