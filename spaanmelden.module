@@ -722,7 +722,7 @@ function _spaanmelden_add_membership($data = array()) {
 		'total_amount'           => $contribution,
 		'financial_type_id'      => $financialTypeId,
 		'contribution_status_id' => 2, // Pending
-		'payment_instrument'     => $paymentInstrument,
+		'payment_instrument_id'  => $paymentInstrument,
 	    'new_mandaat'            => 0,
 	    'iban'                   => $data['bank_account'],
 	);
