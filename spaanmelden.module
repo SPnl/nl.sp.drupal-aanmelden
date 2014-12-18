@@ -493,46 +493,6 @@ function _spaanmelden_cache_data($cacheName, $callback, $limit = 28800) {
     return false;
 }
 
-// Haal de ID op die bij een lidmaatschap (Lid SP e.d.) hoort
-function _spaanmelden_get_membership_type_id($typeString) {
-
-    return _spaanmelden_cache_data('spaanmelden_type_id_' . $typeString, function () use ($typeString) {
-
-        $api = spciviapi_get_api();
-        try {
-            $api->MembershipType->Getsingle(array(
-                'name' => $typeString,
-            ));
-            $mt = $api->result();
-            if($mt)
-                return $mt->id;
-
-        } catch (\Exception $e) {
-            return false;
-        }
-    });
-}
-
-// Haal de ID op die bij een status hoort ('Nieuw', 'In behandeling', etc)
-function _spaanmelden_get_membership_status_id($statusString) {
-
-    return _spaanmelden_cache_data('spaanmelden_status_id_' . $statusString, function () use ($statusString) {
-
-        $api = spciviapi_get_api();
-        try {
-            $api->MembershipStatus->Getsingle(array(
-                'name' => $statusString,
-            ));
-            $ms = $api->result();
-            if($ms)
-                return $ms->id;
-
-        } catch (\Exception $e) {
-            return false;
-        }
-    });
-}
-
 // Haal de ID op die bij het locatietype 'Thuis' hoort
 function _spaanmelden_get_location_type_id() {
 
@@ -677,7 +637,6 @@ function _spaanmelden_add_membership($data = array()) {
     $res = $api->result();
     if(!$res || $res->is_error) {
         throw new \Exception('CiviCRM API error (Address): ' . $res->error_message);
-        return $contact_id;
     }
 
     // Add email address
@@ -689,7 +648,6 @@ function _spaanmelden_add_membership($data = array()) {
     $res = $api->result();
     if(!$res || $res->is_error) {
         throw new \Exception('CiviCRM API error (Email): ' . $res->error_message);
-        return $contact_id;
     }
 
     // Add phone number(s)
@@ -704,7 +662,6 @@ function _spaanmelden_add_membership($data = array()) {
         $res = $api->result();
         if(!$res || $res->is_error) {
             throw new \Exception('CiviCRM API error (Phone): ' . $res->error_message);
-            return $contact_id;
         }
     }
     if($data['phone_mobile']) {
@@ -718,7 +675,6 @@ function _spaanmelden_add_membership($data = array()) {
         $res = $api->result();
         if(!$res || $res->is_error) {
             throw new \Exception('CiviCRM API error (Mobile): ' . $res->error_message);
-            return $contact_id;
         }
     }
 
@@ -726,28 +682,57 @@ function _spaanmelden_add_membership($data = array()) {
     switch ($data['membership_type']) {
 
         case 'lid_sp':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(variable_get('spaanmelden_id_lid_sp'));
+            $membershipTypeId = variable_get('spaanmelden_id_lid_sp');
+			$financialTypeId = variable_get('spaanmelden_id_fintype_sp');
+			$contribution = $data['contribution'];
             break;
         case 'lid_sprood':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(variable_get('spaanmelden_id_lid_sprood'));
+            $membershipTypeId = variable_get('spaanmelden_id_lid_sprood');
+			$financialTypeId = variable_get('spaanmelden_id_fintype_sprood');
+	        $contribution = $data['contribution'];
             break;
         case 'tribune':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(variable_get('spaanmelden_id_abo_tribune'));
+            $membershipTypeId = variable_get('spaanmelden_id_abo_tribune');
+			$financialTypeId = variable_get('spaanmelden_id_fintype_tribune');
+	        $contribution = ($data['payment_method'] == 'incasso') ? 5 : 6;
             break;
         case 'spanning':
-            $membershipTypeId = _spaanmelden_get_membership_type_id(variable_get('spaanmelden_id_abo_spanning'));
+            $membershipTypeId = variable_get('spaanmelden_id_abo_spanning');
+			$financialTypeId = variable_get('spaanmelden_id_fintype_spanning');
+	        $contribution = 6;
             break;
+	    default:
+		    throw new \Exception('CiviCRM API error: invalid membership type: ' . $data['membership_type'] . '.');
+		    break;
     }
 
-    $membershipData = array(
-        'contact_id'         => $contact_id,
-        'membership_type_id' => $membershipTypeId,
-        'start_date'         => date('Ymdhis', $data['verified']),
-        'join_date'          => date('Ymdhis', $data['verified']),
-        'is_override'        => 1,
-        'status_id'          => _spaanmelden_get_membership_status_id(variable_get('spaanmelden_id_status')),
-        'membership_source'  => 'Website',
-    );
+	if($data['payment_method'] == 'incasso') {
+		$paymentInstrument = variable_get('spaanmelden_id_payment_incasso');
+	} else {
+		$paymentInstrument = variable_get('spaanmelden_id_payment_accept');
+	}
+
+	$membershipData = array(
+		'contact_id'             => $contact_id,
+		'membership_type_id'     => $membershipTypeId,
+		'membership_start_date'  => date('Ymdhis', $data['verified']),
+		'join_date'              => date('Ymdhis', $data['verified']),
+		'is_override'            => 1,
+		'status_id'              => variable_get('spaanmelden_id_status'),
+		'total_amount'           => $contribution,
+		'financial_type_id'      => $financialTypeId,
+		'contribution_status_id' => 2, // Pending
+		'payment_instrument'     => $paymentInstrument,
+	    'new_mandaat'            => 0,
+	    'iban'                   => $data['bank_account'],
+	);
+	if($data['payment_method'] == 'incasso' && $data['bank_account']) {
+		$membershipData['new_mandaat'] = 1;
+		$membershipData['mandaat_status'] = 'FRST';
+		$membershipData['mandaat_datum'] = date('Ymdhis', $data['verified']);
+		$membershipData['mandaat_plaats'] = $data['city'];
+	}
+
     if($data['membership_type'] == 'lid_sp') {
         $spGiftField = variable_get('spaanmelden_id_custom_gift_sp');
         $membershipData[$spGiftField] = $data['welcome_present_sp'];
@@ -757,35 +742,12 @@ function _spaanmelden_add_membership($data = array()) {
         $membershipData[$roodGiftField] = $data['welcome_present_rood'];
     }
 
-    $api->Membership->Create($membershipData);
+    $api->Membership->spcreate($membershipData);
     $res = $api->result();
 
     if(!$res || $res->is_error) {
         throw new \Exception('CiviCRM API error (Membership): ' . $res->error_message . ' ' . print_r($membershipData, true));
-        return $contact_id;
     }
-
-    /* TODO Add contribution
-    $contributionData = array(
-        'contact_id' => $contact_id,
-        'total_amount' => $data['contribution'],
-        'financial_type_id' => 2, // contributie
-        'payment_instrument_id' => 1, // payment_method
-        'contribution_status_id' => 0, // open
-    );
-    if($data['bank_account']) {
-        $ibanField = variable_get('spaanmelden_id_custom_iban');
-        $contributionData[$ibanField] = $data['bank_account'];
-    }
-
-    $api->Contribution->Create($contributionData);
-    $res = $api->result();
-
-    if(!$res || $res->is_error) {
-        throw new \Exception('CiviCRM API error (Contribution): ' . $res->error_message . ' ' . print_r($contributionData, true));
-        return $contact_id;
-    }
-    */
 
     // Add activity record
     $data['submitted'] = time();
@@ -807,7 +769,6 @@ function _spaanmelden_add_membership($data = array()) {
     $res = $api->result();
     if(!$res || $res->is_error) {
         throw new \Exception('CiviCRM API error (Activity): ' . $res->error_message);
-        return $contact_id;
     }
 
     return $contact_id;

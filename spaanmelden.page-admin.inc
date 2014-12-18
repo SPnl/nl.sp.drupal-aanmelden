@@ -48,38 +48,80 @@ function spaanmelden_admin_settings_form() {
 
     $form['spaanmelden_id_lid_sp'] = array(
         '#type'          => 'textfield',
-        '#title'         => 'Naam lidmaatschap SP',
-        '#default_value' => variable_get('spaanmelden_id_lid_sp', 'Lid SP'),
+        '#title'         => 'ID lidmaatschap SP',
+        '#default_value' => variable_get('spaanmelden_id_lid_sp', 1),
         '#required'      => true,
     );
+
+	$form['spaanmelden_id_fintype_sp'] = array(
+		'#type'          => 'textfield',
+		'#title'         => 'ID financieel type SP',
+		'#default_value' => variable_get('spaanmelden_id_fintype_sp', 6),
+		'#required'      => true,
+	);
 
     $form['spaanmelden_id_lid_sprood'] = array(
         '#type'          => 'textfield',
-        '#title'         => 'Naam lidmaatschap SP en ROOD',
-        '#default_value' => variable_get('spaanmelden_id_lid_sprood', 'Lid SP en ROOD'),
+        '#title'         => 'ID lidmaatschap SP en ROOD',
+        '#default_value' => variable_get('spaanmelden_id_lid_sprood', 2),
         '#required'      => true,
     );
+
+	$form['spaanmelden_id_fintype_sprood'] = array(
+		'#type'          => 'textfield',
+		'#title'         => 'ID financieel type SP en ROOD',
+		'#default_value' => variable_get('spaanmelden_id_fintype_sp', 7),
+		'#required'      => true,
+	);
 
     $form['spaanmelden_id_abo_tribune'] = array(
         '#type'          => 'textfield',
-        '#title'         => 'Naam abonnement Tribune',
-        '#default_value' => variable_get('spaanmelden_id_abo_tribune', 'Abonnee Tribune Betaald'),
+        '#title'         => 'ID abonnement Tribune',
+        '#default_value' => variable_get('spaanmelden_id_abo_tribune', 4),
         '#required'      => true,
     );
+
+	$form['spaanmelden_id_fintype_tribune'] = array(
+		'#type'          => 'textfield',
+		'#title'         => 'ID financieel type Tribune',
+		'#default_value' => variable_get('spaanmelden_id_fintype_tribune', 10),
+		'#required'      => true,
+	);
 
     $form['spaanmelden_id_abo_spanning'] = array(
         '#type'          => 'textfield',
-        '#title'         => 'Naam abonnement Spanning',
-        '#default_value' => variable_get('spaanmelden_id_abo_spanning', 'Abonnee Spanning'),
+        '#title'         => 'ID abonnement Spanning',
+        '#default_value' => variable_get('spaanmelden_id_abo_spanning', 10),
         '#required'      => true,
     );
 
+	$form['spaanmelden_id_fintype_spanning'] = array(
+		'#type'          => 'textfield',
+		'#title'         => 'ID financieel type Spanning',
+		'#default_value' => variable_get('spaanmelden_id_fintype_spanning', 8),
+		'#required'      => true,
+	);
+
     $form['spaanmelden_id_status'] = array(
         '#type'          => 'textfield',
-        '#title'         => 'Status voor lidmaatschappen',
-        '#default_value' => variable_get('spaanmelden_id_status', 'Pending'),
+        '#title'         => 'Status-ID voor lidmaatschappen',
+        '#default_value' => variable_get('spaanmelden_id_status', 5),
         '#required'      => true,
     );
+
+	$form['spaanmelden_id_payment_incasso'] = array(
+		'#type'          => 'textfield',
+		'#title'         => 'ID betaalwijze incasso',
+		'#default_value' => variable_get('spaanmelden_id_payment_incasso', 10),
+		'#required'      => true,
+	);
+
+	$form['spaanmelden_id_payment_accept'] = array(
+		'#type'          => 'textfield',
+		'#title'         => 'ID betaalwijze acceptgiro',
+		'#default_value' => variable_get('spaanmelden_id_payment_accept', 9),
+		'#required'      => true,
+	);
 
     $form['spaanmelden_id_activity'] = array(
         '#type'          => 'textfield',
@@ -91,28 +133,21 @@ function spaanmelden_admin_settings_form() {
     $form['spaanmelden_id_activity_contact'] = array(
         '#type'          => 'textfield',
         '#title'         => 'ID Contact voor activiteit',
-        '#default_value' => variable_get('spaanmelden_id_activity_contact', 804410),
-        '#required'      => true,
-    );
-
-    $form['spaanmelden_id_custom_iban'] = array(
-        '#type'          => 'textfield',
-        '#title'         => 'Veldnaam IBAN',
-        '#default_value' => variable_get('spaanmelden_id_custom_iban', 'iban'),
+        '#default_value' => variable_get('spaanmelden_id_activity_contact', 7),
         '#required'      => true,
     );
 
     $form['spaanmelden_id_custom_gift_sp'] = array(
         '#type'          => 'textfield',
         '#title'         => 'Veldnaam welkomstcadeau SP',
-        '#default_value' => variable_get('spaanmelden_id_custom_gift_sp', 'welk_type_cadeau_84'),
+        '#default_value' => variable_get('spaanmelden_id_custom_gift_sp', 'cadeau_8'),
         '#required'      => true,
     );
 
     $form['spaanmelden_id_custom_gift_rood'] = array(
         '#type'          => 'textfield',
         '#title'         => 'Veldnaam welkomstcadeau ROOD',
-        '#default_value' => variable_get('spaanmelden_id_custom_gift_rood', 'cadeau_11'),
+        '#default_value' => variable_get('spaanmelden_id_custom_gift_rood', 'cadeau_10'),
         '#required'      => true,
     );
 

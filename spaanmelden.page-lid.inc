@@ -718,8 +718,9 @@ function spaanmelden_form_lid_form_donation_validate($form, &$form_state) {
         }
     }
 
+	$payment_method = drupal_array_get_nested_value($form_state['values'], array('payment', 'payment_method'));
     $bank_account = drupal_array_get_nested_value($form_state['values'], array('payment', 'bank_account'));
-    if(!_spaanmelden_check_iban($bank_account)) {
+    if($payment_method == 'incasso' && !_spaanmelden_check_iban($bank_account)) {
         form_set_error('payment][bank_account', 'Er is geen geldig rekeningnummer ingevoerd. U dient een IBAN nummer in te voeren.');
     }
 }
