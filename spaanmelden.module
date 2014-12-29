@@ -39,6 +39,15 @@ function spaanmelden_menu() {
         'file'            => 'spaanmelden.page-spanning.inc',
     );
 
+    $items['doe-mee/aanmelden/intern'] = array(
+        'title'           => 'Snel aanmelden (intern formulier)',
+        'type'            => MENU_SUGGESTED_ITEM,
+        'page callback'   => 'spaanmelden_page_intern',
+        'access callback' => true,
+        'menu_name'       => 'main-menu',
+        'file'            => 'spaanmelden.page-intern.inc',
+    );
+
     $items['doe-mee/aanmelden/bedankt'] = array(
         'title'           => 'Bedankt voor uw aanmelding',
         'type'            => MENU_CALLBACK,
@@ -578,6 +587,58 @@ function _spaanmelden_postcode_lookup($postcode, $huisnummer) {
     return array();
 }
 
+// Dubbelen-check voor intern aanmeldformulier
+function _spaanmelden_doubles_check($postcode, $huisnummer) {
+
+    $api = spciviapi_get_api();
+    $api->Address->Get(array(
+        'postal_code' => $postcode,
+        'housenumber' => $huisnummer,
+    ));
+    $addressCheck = $api->result();
+    if ($addressCheck && $addressCheck->count > 0) {
+        $records = array();
+        foreach ($addressCheck->values as $record) {
+            $api->Contact->Getsingle(array(
+                'contact_id' => $record->contact_id,
+            ));
+            $contactChk = $api->result();
+            if ($contactChk && !$contactChk->is_error)
+                $records[] = '<a href="/civicrm/contact/view/?cid=' . $contactChk->contact_id . '">' . $contactChk->contact_id . ' ' . $contactChk->display_name . '</a>';
+        }
+
+        return $records;
+    }
+
+    return false;
+}
+
+// Dubbelen-check voor intern aanmeldformulier op basis van emailadres
+function _spaanmelden_doubles_check_email($email) {
+
+    $api = spciviapi_get_api();
+    $api->Email->Get(array(
+        'email' => $email,
+    ));
+    $emailCheck = $api->result();
+    if ($emailCheck && $emailCheck->count > 0) {
+
+        $records = array();
+        foreach ($emailCheck->values as $record) {
+            $api->Contact->Getsingle(array(
+                'contact_id' => $record->contact_id,
+            ));
+            $contactChk = $api->result();
+            if ($contactChk && !$contactChk->is_error)
+                $records[] = '<a href="/civicrm/contact/view/?cid=' . $contactChk->contact_id . '">' . $contactChk->contact_id . ' ' . $contactChk->display_name . '</a>';
+        }
+
+        return $records;
+    }
+
+    return false;
+}
+
 // Voeg een nieuw contact toe aan CiviCRM, inclusief een lidmaatschap of abonnement
 function _spaanmelden_add_membership($data = array()) {
 
@@ -828,6 +889,10 @@ function _spaanmelden_friendly_field_data($key, $value, $activity = false) {
             return array('Welkomstcadeau ROOD', _spaanmelden_get_gift_internal_name($value));
         case 'created':
             return array('Aangemeld', $value ? date('d-m-Y H:i:s', $value) : '-');
+        case 'flags':
+            if($value)
+                return array('Type', $value == 'INTERN' ? '<em>Interne aanmelding</em>' : '');
+            return array(null, null);
         case 'verified':
             return array('Bevestigd', $value ? date('d-m-Y H:i:s', $value) : '-');
         case 'reminded':

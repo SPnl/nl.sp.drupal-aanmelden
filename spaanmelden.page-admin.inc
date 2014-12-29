@@ -35,6 +35,15 @@ function spaanmelden_admin_texts_form() {
         '#required'      => false,
     );
 
+    $intern_text = variable_get('spaanmelden_text_intern', array('value' => '', 'format' => null));
+    $form['spaanmelden_text_intern'] = array(
+        '#type'          => 'text_format',
+        '#title'         => 'Tekst aanmelden intern formulier',
+        '#default_value' => $intern_text['value'],
+        '#format'        => $intern_text['format'],
+        '#required'      => false,
+    );
+
     return system_settings_form($form);
 }
 
@@ -171,7 +180,7 @@ function spaanmelden_view_submissions() {
 
         $data[] = array(
             'id'        => $s->id,
-            'name'      => ($s->firstname ? $s->firstname : $s->initials) . ' ' . ($s->middlename ? $s->minddlename . ' ' : '') . $s->lastname,
+            'name'      => ($s->firstname ? $s->firstname : $s->initials) . ' ' . ($s->middlename ? $s->middlename . ' ' : '') . $s->lastname,
             'type'      => _spaanmelden_membership_description($s->membership_type, true),
             'created'   => date('d-m-Y H:i', $s->created),
             'verified'  => ($s->verified ? date('d-m-Y H:i', $s->verified) : '-'),
