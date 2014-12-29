@@ -43,7 +43,8 @@ function spaanmelden_menu() {
         'title'           => 'Snel aanmelden (intern formulier)',
         'type'            => MENU_SUGGESTED_ITEM,
         'page callback'   => 'spaanmelden_page_intern',
-        'access callback' => array('administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('access internal signup form'),
         'menu_name'       => 'main-menu',
         'file'            => 'spaanmelden.page-intern.inc',
     );
@@ -93,14 +94,16 @@ function spaanmelden_menu() {
         'description'      => 'Aanmeldingen bekijken en de formulieren instellen.',
         'type'             => MENU_NORMAL_ITEM,
         'page callback'    => 'spaanmelden_view_submissions',
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('access pending submissions', 'administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
     );
 
     $items['admin/config/sp/aanmelden/submissions'] = array(
         'title'            => 'Inschrijvingen',
         'type'             => MENU_DEFAULT_LOCAL_TASK,
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('access pending submissions', 'administer signup forms'),
         'weight'           => -2,
     );
 
@@ -109,7 +112,8 @@ function spaanmelden_menu() {
         'type'             => MENU_CALLBACK,
         'page callback'    => 'spaanmelden_submission_details',
         'page arguments'   => array(5),
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('access pending submissions', 'administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => -1,
     );
@@ -118,7 +122,8 @@ function spaanmelden_menu() {
         'title'            => 'Welkomstgeschenken',
         'type'             => MENU_LOCAL_TASK,
         'page callback'    => 'spaanmelden_gifts_view',
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => 1,
     );
@@ -128,7 +133,8 @@ function spaanmelden_menu() {
         'type'             => MENU_CALLBACK,
         'page callback'    => 'drupal_get_form',
         'page arguments'   => array('spaanmelden_gifts_form'),
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => 2,
     );
@@ -138,7 +144,8 @@ function spaanmelden_menu() {
         'type'             => MENU_CALLBACK,
         'page callback'    => 'drupal_get_form',
         'page arguments'   => array('spaanmelden_gifts_form', 1),
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => 3,
     );
@@ -149,7 +156,8 @@ function spaanmelden_menu() {
         'type'             => MENU_LOCAL_TASK,
         'page callback'    => 'drupal_get_form',
         'page arguments'   => array('spaanmelden_admin_texts_form'),
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => 11,
     );
@@ -160,7 +168,8 @@ function spaanmelden_menu() {
         'type'             => MENU_LOCAL_TASK,
         'page callback'    => 'drupal_get_form',
         'page arguments'   => array('spaanmelden_admin_settings_form'),
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => 12,
     );
@@ -169,12 +178,31 @@ function spaanmelden_menu() {
         'title'            => 'Wachtende inschrijvingen verwerken',
         'type'             => MENU_CALLBACK,
         'page callback'    => 'spaanmelden_admin_submit_pending',
-        'access arguments' => array('access administration pages', 'administer CiviCRM'),
+        'access callback'  => 'user_access',
+        'access arguments' => array('access pending submissions', 'administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => 13,
     );
 
     return $items;
+}
+
+// Implements hook_permission
+function sprelasync_permission() {
+    return array(
+        'administer signup forms' =>
+            array('title'       => t('Aanmeldformulieren beheren'),
+                  'description' => t('Beheer instellingen en welkomstgeschenken voor de aanmeldformulieren.'),
+            ),
+        'access pending submissions' =>
+            array('title'       => t('Wachtende aanmeldingen bekijken'),
+                  'description' => t('Bekijk en synchroniseer wachtende aanmeldingen.'),
+            ),
+        'access internal signup form' =>
+            array('title'       => t('Intern aanmeldformulier'),
+                  'description' => t('Toegang tot intern aanmeldformulier.'),
+            ),
+    );
 }
 
 // Implements hook_theme
