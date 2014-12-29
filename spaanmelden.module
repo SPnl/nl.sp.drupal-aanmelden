@@ -142,8 +142,8 @@ function spaanmelden_menu() {
     $items['admin/config/sp/aanmelden/gifts/edit/%'] = array(
         'title'            => 'Geschenk bewerken',
         'type'             => MENU_CALLBACK,
-        'page callback'    => 'spaanmelden_gifts_get_form',
-        'page arguments'   => array(6),
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('spaanmelden_gifts_form', 6),
         'access callback'  => 'user_access',
         'access arguments' => array('administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',

@@ -289,13 +289,7 @@ function spaanmelden_gifts_view($action = null, $id = null) {
     return $output;
 }
 
-function spaanmelden_gifts_get_form($id = null) {
-    return drupal_get_form('spaanmelden_gifts_form', $id);
-}
-
 function spaanmelden_gifts_form($form = null, $form_state = null, $id = null) {
-
-    var_dump($id);
 
     //Begin add form
     $form = array();
