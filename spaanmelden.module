@@ -95,7 +95,7 @@ function spaanmelden_menu() {
         'type'             => MENU_NORMAL_ITEM,
         'page callback'    => 'spaanmelden_view_submissions',
         'access callback'  => 'user_access',
-        'access arguments' => array('access pending submissions', 'administer signup forms'),
+        'access arguments' => array('administer signup forms'),
         'file'             => 'spaanmelden.page-admin.inc',
     );
 
@@ -103,7 +103,7 @@ function spaanmelden_menu() {
         'title'            => 'Inschrijvingen',
         'type'             => MENU_DEFAULT_LOCAL_TASK,
         'access callback'  => 'user_access',
-        'access arguments' => array('access pending submissions', 'administer signup forms'),
+        'access arguments' => array('access pending submissions'),
         'weight'           => -2,
     );
 
@@ -113,7 +113,7 @@ function spaanmelden_menu() {
         'page callback'    => 'spaanmelden_submission_details',
         'page arguments'   => array(5),
         'access callback'  => 'user_access',
-        'access arguments' => array('access pending submissions', 'administer signup forms'),
+        'access arguments' => array('access pending submissions'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => -1,
     );
@@ -179,7 +179,7 @@ function spaanmelden_menu() {
         'type'             => MENU_CALLBACK,
         'page callback'    => 'spaanmelden_admin_submit_pending',
         'access callback'  => 'user_access',
-        'access arguments' => array('access pending submissions', 'administer signup forms'),
+        'access arguments' => array('access pending submissions'),
         'file'             => 'spaanmelden.page-admin.inc',
         'weight'           => 13,
     );
