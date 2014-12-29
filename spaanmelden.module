@@ -43,7 +43,7 @@ function spaanmelden_menu() {
         'title'           => 'Snel aanmelden (intern formulier)',
         'type'            => MENU_SUGGESTED_ITEM,
         'page callback'   => 'spaanmelden_page_intern',
-        'access callback' => true,
+        'access callback' => array('access CiviCRM'),
         'menu_name'       => 'main-menu',
         'file'            => 'spaanmelden.page-intern.inc',
     );
