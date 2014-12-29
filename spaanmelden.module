@@ -188,7 +188,7 @@ function spaanmelden_menu() {
 }
 
 // Implements hook_permission
-function sprelasync_permission() {
+function spaanmelden_permission() {
     return array(
         'administer signup forms' =>
             array('title'       => t('Aanmeldformulieren beheren'),
