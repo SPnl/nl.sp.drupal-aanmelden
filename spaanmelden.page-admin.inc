@@ -146,17 +146,24 @@ function spaanmelden_admin_settings_form() {
         '#required'      => true,
     );
 
+    $form['spaanmelden_id_custom_initials'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'Voorletters',
+        '#default_value' => variable_get('spaanmelden_id_custom_initials', 'custom_111'),
+        '#required'      => true,
+    );
+
     $form['spaanmelden_id_custom_gift_sp'] = array(
         '#type'          => 'textfield',
         '#title'         => 'Veldnaam welkomstcadeau SP',
-        '#default_value' => variable_get('spaanmelden_id_custom_gift_sp', 'cadeau_8'),
+        '#default_value' => variable_get('spaanmelden_id_custom_gift_sp', 'custom_119'),
         '#required'      => true,
     );
 
     $form['spaanmelden_id_custom_gift_rood'] = array(
         '#type'          => 'textfield',
         '#title'         => 'Veldnaam welkomstcadeau ROOD',
-        '#default_value' => variable_get('spaanmelden_id_custom_gift_rood', 'cadeau_10'),
+        '#default_value' => variable_get('spaanmelden_id_custom_gift_rood', 'custom_122'),
         '#required'      => true,
     );
 

@@ -141,7 +141,10 @@ function spaanmelden_form_intern_submit($form, &$form_state) {
 	$first_name = drupal_array_get_nested_value($form_state['storage']['data'], array('personal', 'firstname'));
 	$last_name = drupal_array_get_nested_value($form_state['storage']['data'], array('personal', 'lastname'));
 	$initials = drupal_array_get_nested_value($form_state['storage']['data'], array('personal', 'initials'));
+
 	$email = drupal_array_get_nested_value($form_state['storage']['data'], array('contact', 'email'));
+	if(!$email)
+		$email = null;
 
 	// Overige variabelen
 	$record = array(
@@ -380,7 +383,7 @@ function spaanmelden_form_intern_form_contact($form, &$form_state) {
 		'#title'         => 'E-mailadres',
 		'#type'          => 'textfield', // emailfield werkt niet met callback
 		'#default_value' => $emailAddress,
-		'#required'      => true,
+		'#required'      => false,
 		'#ajax'          => array(
 			'wrapper'  => 'spaanmelden_form',
 			'callback' => 'spaanmelden_form_intern_form_ajax_callback',

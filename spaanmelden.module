@@ -499,6 +499,7 @@ function spaanmelden_submit_pending() {
                 $error = null;
             } catch (\Exception $e) {
                 $error = $e->getMessage();
+                $contact_id = null;
             }
 
             db_update('sp_aanmeldingen')
@@ -687,17 +688,24 @@ function _spaanmelden_add_membership($data = array()) {
     }
 
     // Create contact
-    $api = spciviapi_get_api();
-    $api->Contact->create(array(
+    $contactData = array(
         'contact_type' => 'Individual',
         'first_name'   => $data['firstname'],
         'middle_name'  => $data['middlename'],
         'last_name'    => $data['lastname'],
-        'nick_name'    => $data['initials'],
+        'custom_111'    => $data['initials'], // TODO naam configureerbaar
         'display_name' => ($data['firstname'] ? $data['firstname'] : $data['initials']) . '+' . ($data['middlename'] ? $data['middlename'] . '+' : '') . $data['lastname'],
         'birth_date'   => $data['birthdate'],
         'gender_id'    => $gender,
-    ));
+    );
+
+    if($data['initials']) {
+        $spInitialsField = variable_get('spaanmelden_id_custom_initials');
+        $contactData[$spInitialsField] = $data['initials'];
+    }
+
+    $api = spciviapi_get_api();
+    $api->Contact->create($contactData);
     $res = $api->result();
     if(!$res || $res->is_error || !$res->id) {
         throw new \Exception('CiviCRM API error (Contact): ' . $res->error_message);
@@ -716,9 +724,11 @@ function _spaanmelden_add_membership($data = array()) {
         'contact_id'           => $contact_id,
         'is_primary'           => 1,
         'location_type_id'     => $locationTypeId,
+//        'street_address'       => $data['street'] . ' ' . $data['housenumber'] . $data['housenumber_suffix'],
+//        'street_parsing'       => 1,
         'street_name'          => $data['street'],
         'street_number'        => $data['housenumber'],
-        'street_number_suffix' => $data['housenumber_suffix'],
+        'street_unit'          => $data['housenumber_suffix'],
         'city'                 => $data['city'],
         'postal_code'          => $data['zipcode'],
         'country_id'           => $countryId,
@@ -729,14 +739,16 @@ function _spaanmelden_add_membership($data = array()) {
     }
 
     // Add email address
-    $api->Email->create(array(
-        'contact_id'       => $contact_id,
-        'email'            => $data['email'],
-        'location_type_id' => $locationTypeId,
-    ));
-    $res = $api->result();
-    if(!$res || $res->is_error) {
-        throw new \Exception('CiviCRM API error (Email): ' . $res->error_message);
+    if($data['email']) {
+        $api->Email->create(array(
+            'contact_id'       => $contact_id,
+            'email'            => $data['email'],
+            'location_type_id' => $locationTypeId,
+        ));
+        $res = $api->result();
+        if (!$res || $res->is_error) {
+            throw new \Exception('CiviCRM API error (Email): ' . $res->error_message);
+        }
     }
 
     // Add phone number(s)
@@ -822,13 +834,13 @@ function _spaanmelden_add_membership($data = array()) {
 		$membershipData['mandaat_plaats'] = $data['city'];
 	}
 
-    if($data['membership_type'] == 'lid_sp') {
+    if(in_array($data['membership_type'], array('lid_sp', 'lid_sprood'))) {
         $spGiftField = variable_get('spaanmelden_id_custom_gift_sp');
-        $membershipData[$spGiftField] = $data['welcome_present_sp'];
+        $membershipData[$spGiftField] = _spaanmelden_get_gift_internal_name($data['welcome_present_sp']);
     }
     if($data['membership_type'] == 'lid_sprood') {
         $roodGiftField = variable_get('spaanmelden_id_custom_gift_rood');
-        $membershipData[$roodGiftField] = $data['welcome_present_rood'];
+        $membershipData[$roodGiftField] = _spaanmelden_get_gift_internal_name($data['welcome_present_rood']);
     }
 
     $api->Membership->spcreate($membershipData);
