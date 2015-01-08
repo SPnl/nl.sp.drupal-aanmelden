@@ -693,7 +693,6 @@ function _spaanmelden_add_membership($data = array()) {
         'first_name'   => $data['firstname'],
         'middle_name'  => $data['middlename'],
         'last_name'    => $data['lastname'],
-        'custom_111'    => $data['initials'], // TODO naam configureerbaar
         'display_name' => ($data['firstname'] ? $data['firstname'] : $data['initials']) . '+' . ($data['middlename'] ? $data['middlename'] . '+' : '') . $data['lastname'],
         'birth_date'   => $data['birthdate'],
         'gender_id'    => $gender,
