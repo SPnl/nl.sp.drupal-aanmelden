@@ -410,6 +410,11 @@ function _spaanmelden_form_default_value($form_state, $parents, $default_value =
     return $value;
 }
 
+function _spaanmelden_form_is_incasso(&$form_state) {
+    $paymentMethod = drupal_array_get_nested_value($form_state, array('values', 'payment', 'payment_method'));
+    return ($paymentMethod == 'incasso');
+}
+
 function _spaanmelden_get_qline() {
     return '<p>Voor verdere vragen over uw aanmelding kun je contact opnemen met de
             ledenadministratie: 088-243 55 40 of <a href="mailto:administratie@sp.nl">administratie@sp.nl</a>.</p>';

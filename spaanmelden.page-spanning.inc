@@ -536,20 +536,26 @@ function spaanmelden_form_spanning_form_payment($form, &$form_state) {
         '#tree'  => true,
     );
 
+    $form['payment']['payment_method'] = array(
+        '#title'         => 'Ik betaal met',
+        '#type'          => 'radios',
+        '#options'       => array('incasso' => 'Automatische incasso (&euro; 20 per jaar)', 'acceptgiro' => 'Acceptgiro (&euro; 24 per jaar)'),
+        '#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'payment_method'), null),
+        '#required'      => true,
+        '#ajax'          => array(
+            'wrapper'  => 'spaanmelden_form',
+            'callback' => 'spaanmelden_form_spanning_form_ajax_callback',
+            'progress' => 'none',
+        ),
+    );
+
     $form['payment']['bank_account'] = array(
         '#title'         => 'Rekeningnummer (IBAN)',
         '#type'          => 'textfield',
         '#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'bank_account'), ''),
         '#required'      => true,
+        '#access'        => _spaanmelden_form_is_incasso($form_state),
         '#description'   => '<p><small>Vind uw IBAN nummer op de site <a href="https://www.ibanbicservice.nl/SingleRequest.aspx" target="_blank">IBAN BIC Service</a></small></p>',
-    );
-
-    $form['payment']['payment_method'] = array(
-        '#title'         => 'Ik betaal met',
-        '#type'          => 'radios',
-        '#options'       => array('incasso' => 'Automatische incasso', 'acceptgiro' => 'Acceptgiro (&euro; 24 per jaar)'),
-        '#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'payment_method'), null),
-        '#required'      => true,
     );
 
     return $form;
@@ -573,7 +579,7 @@ function spaanmelden_form_spanning_form_payment_review(&$info, &$form_state) {
     $form = spaanmelden_form_spanning_form_payment(array(), $form_state);
 
     $info['payment'] = array(
-        '#markup' => '<p class="payment-info">Ik meld me aan als abonnee van de Spanning. Ik betaal hiervoor 20 euro per jaar per incasso, of 24 euro per acceptgiro.</p><p>Twee weken voor de eerste afschrijving ontvang je via internetbankieren bericht wanneer de contributie wordt afgeschreven.</p>',
+        '#markup' => '<p class="payment-info">Ik meld me aan als abonnee van de Spanning. Ik betaal hiervoor 20 euro per jaar per incasso, of 24 euro per acceptgiro. Als ik lid ben van de SP betaal ik 12 euro per jaar.</p><p>Twee weken voor de eerste afschrijving ontvang je via internetbankieren bericht wanneer het abonnementsgeld wordt afgeschreven.</p>',
         '#weight' => 100,
     );
 }

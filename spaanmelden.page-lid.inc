@@ -658,7 +658,7 @@ function spaanmelden_form_lid_form_donation($form, &$form_state) {
         '#type'          => 'textfield',
         '#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'bank_account'), ''),
         '#required'      => true,
-        '#access'        => _spaanmelden_form_lid_is_incasso($form_state),
+        '#access'        => _spaanmelden_form_is_incasso($form_state),
         '#description'   => '<p><small>Vind uw IBAN nummer op de site <a href="https://www.ibanbicservice.nl/SingleRequest.aspx" target="_blank">IBAN BIC Service</a></small></p>',
     );
 
@@ -847,9 +847,4 @@ function _spaanmelden_form_lid_lt_27(&$form_state) {
     }
 
     return $lt_27;
-}
-
-function _spaanmelden_form_lid_is_incasso(&$form_state) {
-    $paymentMethod = drupal_array_get_nested_value($form_state, array('values', 'payment', 'payment_method'));
-    return ($paymentMethod == 'incasso');
 }
