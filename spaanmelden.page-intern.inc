@@ -351,7 +351,7 @@ function spaanmelden_form_intern_form_contact($form, &$form_state) {
 		'#type'          => 'radios',
 		'#options'       => array('m' => 'Man', 'v' => 'Vrouw', 'a' => 'Anders'),
 		'#default_value' => _spaanmelden_form_default_value($form_state, array('personal', 'gender'), null),
-		'#required'      => true,
+		'#required'      => false,
 	);
 
 	$form['personal']['birthdate'] = array(
