@@ -841,10 +841,16 @@ function _spaanmelden_add_membership($data = array()) {
     if(in_array($data['membership_type'], array('lid_sp', 'lid_sprood'))) {
         $spGiftField = variable_get('spaanmelden_id_custom_gift_sp');
         $membershipData[$spGiftField] = _spaanmelden_get_gift_internal_name($data['welcome_present_sp']);
+
+        $spGiftFieldReceived = variable_get('spaanmelden_id_custom_gift_sp_received');
+        $membershipData[$spGiftFieldReceived] = 0;
     }
     if($data['membership_type'] == 'lid_sprood') {
         $roodGiftField = variable_get('spaanmelden_id_custom_gift_rood');
         $membershipData[$roodGiftField] = _spaanmelden_get_gift_internal_name($data['welcome_present_rood']);
+
+        $roodGiftFieldReceived = variable_get('spaanmelden_id_custom_gift_rood_received');
+        $membershipData[$roodGiftFieldReceived] = 0;
     }
 
     $api->Membership->spcreate($membershipData);

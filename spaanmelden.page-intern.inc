@@ -322,14 +322,14 @@ function spaanmelden_form_intern_form_contact($form, &$form_state) {
 		'#title'         => 'Voorletters',
 		'#type'          => 'textfield',
 		'#default_value' => _spaanmelden_form_default_value($form_state, array('personal', 'initials'), ''),
-		'#required'      => true,
+		'#required'      => false,
 	);
 
 	$form['personal']['firstname'] = array(
 		'#title'         => 'Voornaam',
 		'#type'          => 'textfield',
 		'#default_value' => _spaanmelden_form_default_value($form_state, array('personal', 'firstname'), ''),
-		'#required'      => true,
+		'#required'      => false,
 	);
 
 	$form['personal']['middlename'] = array(
@@ -360,7 +360,7 @@ function spaanmelden_form_intern_form_contact($form, &$form_state) {
 		'#date_format'     => 'd-m-Y',
 		'#date_year_range' => '-100:-15',
 		'#default_value'   => _spaanmelden_form_default_value($form_state, array('personal', 'birthdate'), ''),
-		'#required'        => true,
+		'#required'        => false,
 	);
 
 	$form['contact'] = array(

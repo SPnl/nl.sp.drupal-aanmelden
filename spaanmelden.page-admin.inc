@@ -167,6 +167,20 @@ function spaanmelden_admin_settings_form() {
         '#required'      => true,
     );
 
+    $form['spaanmelden_id_custom_gift_sp_received'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'Veldnaam welkomstcadeau SP ontvangen',
+        '#default_value' => variable_get('spaanmelden_id_custom_gift_sp_received', 'custom_120'),
+        '#required'      => true,
+    );
+
+    $form['spaanmelden_id_custom_gift_rood_received'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'Veldnaam welkomstcadeau ROOD ontvangen',
+        '#default_value' => variable_get('spaanmelden_id_custom_gift_rood_received', 'custom_123'),
+        '#required'      => true,
+    );
+
     return system_settings_form($form);
 }
 
