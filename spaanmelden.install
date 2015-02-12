@@ -86,7 +86,8 @@ function spaanmelden_schema() {
             ),
             'contribution'         => array(
                 'type'   => 'numeric',
-                'length' => 10,
+                'precision' => 8,
+		'scale' => 2,
             ),
             'bank_account'         => array(
                 'type'   => 'varchar',
