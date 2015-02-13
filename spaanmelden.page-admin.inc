@@ -5,7 +5,7 @@ function spaanmelden_admin_texts_form() {
     $form = array();
 
     $form['spaanmelden_description_text'] = array(
-        '#markup' => '<h3>Teksten</h3><p>Deze module maakt drie aanmeldformulieren (<a href="' . url('doe-mee/aanmelden/lid') . '">voor leden</a>, <a href="' . url('doe-mee/aanmelden/tribune') . '">Tribune-</a> en <a href="' . url('doe-mee/aanmelden/spanning') . '">Spanning-abonnees</a>) aan die geintegreerd zijn met CiviCRM.<br />De onderstaande teksten worden bovenaan de formulieren getoond.</p>',
+        '#markup' => '<h3>Teksten</h3><p>Deze module maakt drie aanmeldformulieren (<a href="' . url('aanmelden/lid') . '">voor leden</a>, <a href="' . url('aanmelden/tribune') . '">Tribune-</a> en <a href="' . url('aanmelden/spanning') . '">Spanning-abonnees</a>) aan die geintegreerd zijn met CiviCRM.<br />De onderstaande teksten worden bovenaan de formulieren getoond.</p>',
     );
 
     $lid_text = variable_get('spaanmelden_text_lid', array('value' => '', 'format' => null));

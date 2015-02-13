@@ -12,7 +12,7 @@ function spaanmelden_menu() {
 
     $items = array();
 
-    $items['doe-mee/aanmelden/lid'] = array(
+    $items['aanmelden/lid'] = array(
         'title'           => 'Lid worden',
         'type'            => MENU_SUGGESTED_ITEM,
         'page callback'   => 'spaanmelden_page_lid',
@@ -21,7 +21,7 @@ function spaanmelden_menu() {
         'file'            => 'spaanmelden.page-lid.inc',
     );
 
-    $items['doe-mee/aanmelden/tribune'] = array(
+    $items['aanmelden/tribune'] = array(
         'title'           => 'Abonnee op de Tribune worden',
         'type'            => MENU_SUGGESTED_ITEM,
         'page callback'   => 'spaanmelden_page_tribune',
@@ -30,7 +30,7 @@ function spaanmelden_menu() {
         'file'            => 'spaanmelden.page-tribune.inc',
     );
 
-    $items['doe-mee/aanmelden/spanning'] = array(
+    $items['aanmelden/spanning'] = array(
         'title'           => 'Abonnee op de Spanning worden',
         'type'            => MENU_SUGGESTED_ITEM,
         'page callback'   => 'spaanmelden_page_spanning',
@@ -39,7 +39,7 @@ function spaanmelden_menu() {
         'file'            => 'spaanmelden.page-spanning.inc',
     );
 
-    $items['doe-mee/aanmelden/intern'] = array(
+    $items['aanmelden/intern'] = array(
         'title'           => 'Snel aanmelden (intern formulier)',
         'type'            => MENU_SUGGESTED_ITEM,
         'page callback'   => 'spaanmelden_page_intern',
@@ -49,7 +49,7 @@ function spaanmelden_menu() {
         'file'            => 'spaanmelden.page-intern.inc',
     );
 
-    $items['doe-mee/aanmelden/bedankt'] = array(
+    $items['aanmelden/bedankt'] = array(
         'title'           => 'Bedankt voor uw aanmelding',
         'type'            => MENU_CALLBACK,
         'page callback'   => 'spaanmelden_page_thanks',
@@ -58,7 +58,7 @@ function spaanmelden_menu() {
         'file'            => 'spaanmelden.page-actions.inc',
     );
 
-    $items['doe-mee/aanmelden/fout'] = array(
+    $items['aanmelden/fout'] = array(
         'title'           => 'Er is een fout opgetreden',
         'type'            => MENU_CALLBACK,
         'page callback'   => 'spaanmelden_page_error',
@@ -67,7 +67,7 @@ function spaanmelden_menu() {
         'file'            => 'spaanmelden.page-actions.inc',
     );
 
-    $items['doe-mee/aanmelden/bevestig/%'] = array(
+    $items['aanmelden/bevestig/%'] = array(
         'title'           => 'Aanmelding bevestigen',
         'type'            => MENU_CALLBACK,
         'page callback'   => 'spaanmelden_page_validate',
@@ -78,7 +78,7 @@ function spaanmelden_menu() {
     );
 
     /* Postcode-lookup, voor nu via ajax
-    $items['doe-mee/aanmelden/postcode'] = array(
+    $items['aanmelden/postcode'] = array(
         'title'           => 'Postcode-lookup via ajax',
         'type'            => MENU_CALLBACK,
         'page callback'   => 'spaanmelden_page_postcode',
@@ -264,7 +264,7 @@ function _spaanmelden_get_mail(&$message, $params) {
     $descr = _spaanmelden_membership_description($params['membership_type']);
 
     global $base_url;
-    $validate_url = $base_url . '/doe-mee/aanmelden/bevestig/' . $params['hash'];
+    $validate_url = $base_url . '/aanmelden/bevestig/' . $params['hash'];
 
     $message['subject'] = 'Bevestig je aanmelding als ' . $descr;
     $message['body'] = array();
@@ -282,7 +282,7 @@ function _spaanmelden_get_reminder_mail(&$message, $params) {
     $descr = _spaanmelden_membership_description($params['membership_type']);
 
     global $base_url;
-    $validate_url = $base_url . '/doe-mee/aanmelden/bevestig/' . $params['hash'];
+    $validate_url = $base_url . '/aanmelden/bevestig/' . $params['hash'];
 
     $message['subject'] = 'Herinnering: bevestig je aanmelding als ' . $descr;
     $message['body'] = array();

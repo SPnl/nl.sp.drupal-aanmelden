@@ -183,14 +183,14 @@ function spaanmelden_form_lid_submit($form, &$form_state) {
         if(!empty($mail['send'])) {
 
             $name = $first_name ? $first_name : $initials . ' ' . $last_name;
-            $form_state['redirect'] = array('doe-mee/aanmelden/bedankt',
+            $form_state['redirect'] = array('aanmelden/bedankt',
                 array('query' => array('name' => base64_encode($name), 'membership_type' => $membership_type, 'token' => drupal_get_token($name)))
             );
             return true;
         }
     }
 
-    $form_state['redirect'] = array('doe-mee/aanmelden/fout');
+    $form_state['redirect'] = array('aanmelden/fout');
 }
 
 function spaanmelden_form_lid_form_ajax_callback($form, &$form_state) {

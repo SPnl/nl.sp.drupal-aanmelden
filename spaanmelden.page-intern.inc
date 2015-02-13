@@ -180,11 +180,11 @@ function spaanmelden_form_intern_submit($form, &$form_state) {
 	if ($ret) {
 
 		drupal_set_message('Het contact en lidmaatschap zijn opgeslagen. Je kunt nu een nieuw lid invoeren.');
-		$form_state['redirect'] = array('doe-mee/aanmelden/intern');
+		$form_state['redirect'] = array('aanmelden/intern');
 		return true;
 	}
 
-	$form_state['redirect'] = array('doe-mee/aanmelden/fout');
+	$form_state['redirect'] = array('aanmelden/fout');
 }
 
 function spaanmelden_form_intern_form_ajax_callback($form, &$form_state) {
