@@ -71,7 +71,7 @@ function spaanmelden_menu() {
         'title'           => 'Aanmelding bevestigen',
         'type'            => MENU_CALLBACK,
         'page callback'   => 'spaanmelden_page_validate',
-        'page arguments'  => array(3),
+        'page arguments'  => array(2),
         'access callback' => true,
         'menu_name'       => 'main-menu',
         'file'            => 'spaanmelden.page-actions.inc',
