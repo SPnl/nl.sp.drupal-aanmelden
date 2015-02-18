@@ -105,6 +105,10 @@ function spaanmelden_schema() {
                 'type'   => 'varchar',
                 'length' => 20,
             ),
+            'source'   => array(
+                'type'   => 'varchar',
+                'length' => 100,
+            ),
             'created'              => array(
                 'type'     => 'int',
                 'length'   => 11,

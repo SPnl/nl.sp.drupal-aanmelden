@@ -822,29 +822,12 @@ function _spaanmelden_form_lid_lt_27(&$form_state) {
     if(!empty($form_state['input']['personal_information']['birthdate'])) {
         $birthdate = array_map('intval', $form_state['input']['personal_information']['birthdate']);
     }
+    if(!$birthdate || count($birthdate) == 0)
+        return false;
 
-    $lt_27 = false;
-    if(!empty($birthdate['year']) && !empty($birthdate['month']) && !empty($birthdate['day'])) {
-        $now = array(
-            'year'  => date_now()->format('Y'),
-            'month' => date_now()->format('n'),
-            'day'   => date_now()->format('j'),
-        );
-        $now_27 = $now;
-        $now_27['year'] -= 27;
+    $birthdate = new \DateTime($birthdate['year'] . '-' . $birthdate['month'] . '-' . $birthdate['day']);
+    $now = new \DateTime;
 
-        foreach (array('year', 'month', 'day') as $key) {
-            $birthdate_x = !empty($birthdate[$key]) ? $birthdate[$key] : 0;
-            $now_27_x = $now_27[$key];
-
-            if($now_27_x < $birthdate_x) {
-                $lt_27 = true;
-                break;
-            } elseif($now_27_x > $birthdate_x) {
-                break;
-            }
-        }
-    }
-
-    return $lt_27;
+    $interval = $birthdate->diff($now);
+    return ($interval->y <= 27);
 }

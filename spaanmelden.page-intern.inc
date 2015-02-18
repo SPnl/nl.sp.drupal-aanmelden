@@ -133,6 +133,9 @@ function spaanmelden_form_intern_submit($form, &$form_state) {
 		$welcome_present_rood = null;
 	}
 
+	// Nieuw: bron
+	$source = drupal_array_get_nested_value($form_state['storage']['data'], array('member', 'source'));
+
 	// IBAN formatting
 	$bank_account = drupal_array_get_nested_value($form_state['storage']['data'], array('payment', 'bank_account'));
 	$bank_account = strtoupper(preg_replace('/\s+/', '', $bank_account));
@@ -170,6 +173,7 @@ function spaanmelden_form_intern_submit($form, &$form_state) {
 		'payment_method'       => drupal_array_get_nested_value($form_state['storage']['data'], array('payment','payment_method')),
 		'welcome_present_sp'   => $welcome_present_sp,
 		'welcome_present_rood' => $welcome_present_rood,
+		'source'               => $source,
 		'verified'             => time(),
 		'flags'                => 'INTERN',
 	);
@@ -659,6 +663,14 @@ function spaanmelden_form_intern_form_membership($form, &$form_state) {
 		'#default_value' => _spaanmelden_form_default_value($form_state, array('member', 'welcome_rood'), ''),
 		'#required'      => true,
 		'#access'        => ($membershipType == 'lid_sprood'),
+	);
+
+	$form['member']['source'] = array(
+		'#title'         => 'Bron',
+		'#type'          => 'select',
+		'#options'       => _spaanmelden_get_source_options(),
+		'#default_value' => _spaanmelden_form_default_value($form_state, array('member', 'source'), ''),
+		'#required'      => false,
 	);
 
 	$form['payment'] = array(

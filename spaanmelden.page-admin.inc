@@ -17,6 +17,15 @@ function spaanmelden_admin_texts_form() {
         '#required'      => false,
     );
 
+    $rood_text = variable_get('spaanmelden_text_rood', array('value' => '', 'format' => null));
+    $form['spaanmelden_text_rood'] = array(
+        '#type'          => 'text_format',
+        '#title'         => 'Tekst aanmelden als ROOD-lid',
+        '#default_value' => $rood_text['value'],
+        '#format'        => $rood_text['format'],
+        '#required'      => false,
+    );
+
     $tribune_text = variable_get('spaanmelden_text_tribune', array('value' => '', 'format' => null));
     $form['spaanmelden_text_tribune'] = array(
         '#type'          => 'text_format',
@@ -82,6 +91,20 @@ function spaanmelden_admin_settings_form() {
 		'#default_value' => variable_get('spaanmelden_id_fintype_sp', 7),
 		'#required'      => true,
 	);
+
+    $form['spaanmelden_id_lid_rood'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'ID lidmaatschap ROOD',
+        '#default_value' => variable_get('spaanmelden_id_lid_rood', 3),
+        '#required'      => true,
+    );
+
+    $form['spaanmelden_id_fintype_rood'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'ID financieel type ROOD',
+        '#default_value' => variable_get('spaanmelden_id_fintype_rood', 5),
+        '#required'      => true,
+    );
 
     $form['spaanmelden_id_abo_tribune'] = array(
         '#type'          => 'textfield',
@@ -178,6 +201,20 @@ function spaanmelden_admin_settings_form() {
         '#type'          => 'textfield',
         '#title'         => 'Veldnaam welkomstcadeau ROOD ontvangen',
         '#default_value' => variable_get('spaanmelden_id_custom_gift_rood_received', 'custom_123'),
+        '#required'      => true,
+    );
+
+    $form['spaanmelden_id_custom_source'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'Veldnaam bron bij contact',
+        '#default_value' => variable_get('spaanmelden_id_custom_source', 'custom_112'),
+        '#required'      => true,
+    );
+
+    $form['spaanmelden_id_custom_source_membership'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'Veldnaam bron bij lidmaatschap',
+        '#default_value' => variable_get('spaanmelden_id_custom_source_membership', 'custom_114'),
         '#required'      => true,
     );
 
