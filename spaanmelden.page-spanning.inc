@@ -336,6 +336,13 @@ function spaanmelden_form_spanning_form_personal_information($form, &$form_state
         '#required'      => true,
     );
 
+    $form['contact']['email_confirm'] = array(
+        '#title'         => 'Bevestig je e-mailadres',
+        '#type'          => 'emailfield',
+        '#default_value' => _spaanmelden_form_default_value($form_state, array('contact', 'email_confirm'), array()),
+        '#required'      => true,
+    );
+
     $form['contact']['phone'] = array(
         '#title'         => 'Telefoonnummer',
         '#type'          => 'telfield',
@@ -516,7 +523,7 @@ function spaanmelden_form_spanning_form_personal_information_validate($form, &$f
     if(!empty($phone)) {
         $phone = preg_replace('/[^0-9]/', '', $phone);
         if(empty($phone) || strlen($phone) < 10) {
-            form_set_error('address][phone', 'Er is geen geldig telefoonnummer ingevoerd.');
+            form_set_error('contact][phone', 'Er is geen geldig telefoonnummer ingevoerd.');
         }
     }
 
@@ -524,8 +531,14 @@ function spaanmelden_form_spanning_form_personal_information_validate($form, &$f
     if(!empty($phone_mobile)) {
         $phone_mobile = preg_replace('/[^0-9]/', '', $phone_mobile);
         if(empty($phone_mobile)) {
-            form_set_error('address][phone_mobile', 'Er is geen geldig mobiele telefoonnummer ingevoerd.');
+            form_set_error('contact][phone_mobile', 'Er is geen geldig mobiele telefoonnummer ingevoerd.');
         }
+    }
+
+    $email = drupal_array_get_nested_value($form_state['values'], array('contact', 'email'));
+    $email_confirm = drupal_array_get_nested_value($form_state['values'], array('contact', 'email_confirm'));
+    if($email != $email_confirm) {
+        form_set_error('contact][email_confirm', 'Vul twee keer hetzelfde emailadres in.');
     }
 }
 
@@ -579,7 +592,7 @@ function spaanmelden_form_spanning_form_payment_review(&$info, &$form_state) {
     $form = spaanmelden_form_spanning_form_payment(array(), $form_state);
 
     $info['payment'] = array(
-        '#markup' => '<p class="payment-info">Ik meld me aan als abonnee van de Spanning. Ik betaal hiervoor 20 euro per jaar per incasso, of 24 euro per acceptgiro. Als ik lid ben van de SP betaal ik 12 euro per jaar.</p><p>Twee weken voor de eerste afschrijving ontvang je via internetbankieren bericht wanneer het abonnementsgeld wordt afgeschreven.</p>',
+        '#markup' => '<p class="payment-info">Ik meld me aan als abonnee van de Spanning. Ik betaal hiervoor 20 euro per jaar per incasso, of 24 euro per acceptgiro. Als ik lid ben van de SP betaal ik 12 euro per jaar.</p><p>Indien je per incasso betaalt, ontvang je twee weken voor de eerste afschrijving via internetbankieren bericht wanneer de contributie wordt afgeschreven.</p>',
         '#weight' => 100,
     );
 }

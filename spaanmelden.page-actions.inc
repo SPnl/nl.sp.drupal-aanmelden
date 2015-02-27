@@ -11,11 +11,11 @@ function spaanmelden_page_thanks() {
 
     $ret = '<div class="lid-worden-bedankt content">';
     $descr = _spaanmelden_membership_description($_GET['membership_type']);
-    $ret .= '<p>Bedankt voor uw aanmelding als ' . $descr . '. ';
+    $ret .= '<p>Bedankt voor je aanmelding als ' . $descr . '. ';
     if(!in_array($_GET['membership_type'], array('tribune', 'spanning')))
-        $ret .= 'Goed dat u ons wilt steunen in de strijd voor een beter Nederland!<br />';
-    $ret .= 'U ontvangt straks per e-mail een overzicht van de door u opgegeven gegevens.<br />
-            Let op! De gegevens moet u nog wel even via een link in die e-mail bevestigen.</p>'
+        $ret .= 'Goed dat je ons wilt steunen in de strijd voor een beter Nederland!<br />';
+    $ret .= 'Je ontvangt straks per e-mail een overzicht van de gegevens die je hebt opgegeven.<br />
+            Let op! De gegevens moet je nog wel even via een link in die e-mail bevestigen.</p>'
         . _spaanmelden_get_qline() . '</div>';
     return $ret;
 }
@@ -44,13 +44,13 @@ function spaanmelden_page_validate($hash) {
 
         if($exec) {
             return '<div class="lid-worden-bedankt content"><h1>Aanmelding bevestigd</h1><p>Bedankt voor
-                het bevestigen van uw gegevens. Uw aanmelding wordt zo spoedig mogelijk verwerkt door onze
+                het bevestigen van je gegevens. Je aanmelding wordt zo spoedig mogelijk verwerkt door onze
                  ledenadministratie.</p>' . _spaanmelden_get_qline() . '</div>';
         }
     }
 
     return '<div class="lid-worden-bedankt content"><h1>Aanmelding niet bevestigd</h1><p>Er is een fout
-     opgetreden bij het verwerken van uw aanvraag. Controleer of de link die u gevolgd hebt klopt, en kopieer
+     opgetreden bij het verwerken van je aanvraag. Controleer of de link die je gevolgd hebt klopt, en kopieer
       deze eventueel handmatig uit de e-mail.</p>' . _spaanmelden_get_qline() . '</div>';
 
 }

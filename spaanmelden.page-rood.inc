@@ -417,6 +417,13 @@ function spaanmelden_form_rood_form_personal_information($form, &$form_state) {
 		'#required'      => true,
 	];
 
+	$form['contact']['email_confirm'] = array(
+		'#title'         => 'Bevestig je e-mailadres',
+		'#type'          => 'emailfield',
+		'#default_value' => _spaanmelden_form_default_value($form_state, array('contact', 'email_confirm'), array()),
+		'#required'      => true,
+	);
+
 	$form['contact']['phone'] = [
 		'#title'         => 'Telefoonnummer',
 		'#type'          => 'telfield',
@@ -598,7 +605,7 @@ function spaanmelden_form_rood_form_personal_information_validate($form, &$form_
 	if(!empty($phone)) {
 		$phone = preg_replace('/[^0-9]/', '', $phone);
 		if(empty($phone) || strlen($phone) < 10) {
-			form_set_error('address][phone', 'Er is geen geldig telefoonnummer ingevoerd.');
+			form_set_error('contact][phone', 'Er is geen geldig telefoonnummer ingevoerd.');
 		}
 	}
 
@@ -606,20 +613,30 @@ function spaanmelden_form_rood_form_personal_information_validate($form, &$form_
 	if(!empty($phone_mobile)) {
 		$phone_mobile = preg_replace('/[^0-9]/', '', $phone_mobile);
 		if(empty($phone_mobile)) {
-			form_set_error('address][phone_mobile', 'Er is geen geldig mobiele telefoonnummer ingevoerd.');
+			form_set_error('contact][phone_mobile', 'Er is geen geldig mobiele telefoonnummer ingevoerd.');
 		}
+	}
+
+	$email = drupal_array_get_nested_value($form_state['values'], array('contact', 'email'));
+	$email_confirm = drupal_array_get_nested_value($form_state['values'], array('contact', 'email_confirm'));
+	if($email != $email_confirm) {
+		form_set_error('contact][email_confirm', 'Vul twee keer hetzelfde emailadres in.');
 	}
 }
 
 function spaanmelden_form_rood_form_donation($form, &$form_state) {
+
 	$form['payment'] = [
 		'#type'  => 'fieldset',
 		'#title' => 'Betalingsgegevens',
 		'#tree'  => true,
 	];
 
+
+	$showm = _spaanmelden_form_rood_available_memberships($form_state);
+
 	$form['payment']['contribution'] = [
-		'#title'         => 'Bijdrage per kwartaal',
+		'#title'         => 'Bijdrage per ' . ((!$showm['SP'] && $showm['ROOD']) ? 'jaar' : 'kwrataal'),
 		'#type'          => 'radios',
 		'#options'       => [
 			'500'   => '&euro; 5,00 (minimum)', '750' => '&euro; 7,50',
@@ -642,10 +659,14 @@ function spaanmelden_form_rood_form_donation($form, &$form_state) {
 		],
 	];
 
+	$options = ['incasso' => 'Automatische incasso', 'acceptgiro' => 'Acceptgiro (1 euro per kwartaal administratiekosten)'];
+	if(!$showm['SP'] && $showm['ROOD'])
+		unset($options['acceptgiro']);
+
 	$form['payment']['payment_method'] = [
 		'#title'         => 'Ik betaal met',
 		'#type'          => 'radios',
-		'#options'       => ['incasso' => 'Automatische incasso', 'acceptgiro' => 'Acceptgiro (&euro; 24 per jaar)'],
+		'#options'       => $options,
 		'#default_value' => _spaanmelden_form_default_value($form_state, ['payment', 'payment_method'], null),
 		'#required'      => true,
 		'#ajax'          => [
@@ -685,7 +706,7 @@ function spaanmelden_form_rood_form_donation_tables(&$info, &$form_state) {
 			$contribution = intval($contribution) / 100.0;
 		}
 
-		$rows['Bijdrage per kwartaal'] = '&euro; ' . number_format($contribution, 2, ',', '.');
+		$rows['Bijdrage'] = '&euro; ' . number_format($contribution, 2, ',', '.');
 		$rows = array_merge($rows, _spaanmelden_fieldset_table($fieldset, ['bank_account', 'payment_method']));
 		$info[check_plain($fieldset['#title'])] = $rows;
 	}
@@ -703,8 +724,9 @@ function spaanmelden_form_rood_form_donation_review(&$info, &$form_state) {
 
 	$memberships = _spaanmelden_form_rood_available_memberships($form_state);
 	$description = _spaanmelden_membership_description($memberships['SP'] ? 'lid_sprood' : 'lid_rood');
+	$period = $memberships['SP'] ? 'per kwartaal' : 'per jaar';
 	$info['payment'] = [
-		'#markup' => '<p class="payment-info">Ik word ' . $description . '. Ik betaal per kwartaal &euro; ' . number_format($contribution, 2, ',', '.') . ' aan contributie.</p><p>Twee weken voor de eerste afschrijving ontvang je via internetbankieren bericht wanneer de contributie wordt afgeschreven.</p>',
+		'#markup' => '<p class="payment-info">Ik word ' . $description . '. Ik betaal ' . $period . ' &euro; ' . number_format($contribution, 2, ',', '.') . ' aan contributie.</p><p>Indien je per incasso betaalt, ontvang je twee weken voor de eerste afschrijving via internetbankieren bericht wanneer de contributie wordt afgeschreven.</p>',
 		'#weight' => 100,
 	];
 }

@@ -336,6 +336,13 @@ function spaanmelden_form_tribune_form_personal_information($form, &$form_state)
         '#required'      => true,
     );
 
+    $form['contact']['email_confirm'] = array(
+        '#title'         => 'Bevestig je e-mailadres',
+        '#type'          => 'emailfield',
+        '#default_value' => _spaanmelden_form_default_value($form_state, array('contact', 'email_confirm'), array()),
+        '#required'      => true,
+    );
+
     $form['contact']['phone'] = array(
         '#title'         => 'Telefoonnummer',
         '#type'          => 'telfield',
@@ -516,7 +523,7 @@ function spaanmelden_form_tribune_form_personal_information_validate($form, &$fo
     if(!empty($phone)) {
         $phone = preg_replace('/[^0-9]/', '', $phone);
         if(empty($phone) || strlen($phone) < 10) {
-            form_set_error('address][phone', 'Er is geen geldig telefoonnummer ingevoerd.');
+            form_set_error('contact][phone', 'Er is geen geldig telefoonnummer ingevoerd.');
         }
     }
 
@@ -524,8 +531,14 @@ function spaanmelden_form_tribune_form_personal_information_validate($form, &$fo
     if(!empty($phone_mobile)) {
         $phone_mobile = preg_replace('/[^0-9]/', '', $phone_mobile);
         if(empty($phone_mobile)) {
-            form_set_error('address][phone_mobile', 'Er is geen geldig mobiele telefoonnummer ingevoerd.');
+            form_set_error('contact][phone_mobile', 'Er is geen geldig mobiele telefoonnummer ingevoerd.');
         }
+    }
+
+    $email = drupal_array_get_nested_value($form_state['values'], array('contact', 'email'));
+    $email_confirm = drupal_array_get_nested_value($form_state['values'], array('contact', 'email_confirm'));
+    if($email != $email_confirm) {
+        form_set_error('contact][email_confirm', 'Vul twee keer hetzelfde emailadres in.');
     }
 }
 

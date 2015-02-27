@@ -59,7 +59,7 @@ function spaanmelden_menu() {
     ];
 
     $items['aanmelden/bedankt'] = [
-        'title'           => 'Bedankt voor uw aanmelding',
+        'title'           => 'Bedankt voor je aanmelding',
         'type'            => MENU_CALLBACK,
         'page callback'   => 'spaanmelden_page_thanks',
         'access callback' => true,
@@ -842,11 +842,15 @@ function _spaanmelden_add_membership($data = []) {
             $membershipTypeId = variable_get('spaanmelden_id_lid_sp');
 			$financialTypeId = variable_get('spaanmelden_id_fintype_sp');
 			$contribution = $data['contribution'];
+            if($data['payment_method'] != 'incasso')
+                $contribution += 1;
             break;
         case 'lid_sprood':
             $membershipTypeId = variable_get('spaanmelden_id_lid_sprood');
 			$financialTypeId = variable_get('spaanmelden_id_fintype_sprood');
 	        $contribution = $data['contribution'];
+            if($data['payment_method'] != 'incasso')
+                $contribution += 1;
             break;
         case 'lid_rood':
             $membershipTypeId = variable_get('spaanmelden_id_lid_rood');
