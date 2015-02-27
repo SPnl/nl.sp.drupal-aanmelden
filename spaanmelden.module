@@ -855,7 +855,7 @@ function _spaanmelden_add_membership($data = []) {
         case 'lid_rood':
             $membershipTypeId = variable_get('spaanmelden_id_lid_rood');
             $financialTypeId = variable_get('spaanmelden_id_fintype_rood');
-            $contribution = $data['contribution'];
+            $contribution = $data['contribution'] / 4;
             break;
         case 'tribune':
             $membershipTypeId = variable_get('spaanmelden_id_abo_tribune');
