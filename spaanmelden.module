@@ -841,35 +841,35 @@ function _spaanmelden_add_membership($data = []) {
         case 'lid_sp':
             $membershipTypeId = variable_get('spaanmelden_id_lid_sp');
 			$financialTypeId = variable_get('spaanmelden_id_fintype_sp');
-			$contribution = $data['contribution'];
+			$contribution = (float)$data['contribution'];
             if($data['payment_method'] != 'incasso')
                 $contribution += 1;
             break;
         case 'lid_sprood':
             $membershipTypeId = variable_get('spaanmelden_id_lid_sprood');
 			$financialTypeId = variable_get('spaanmelden_id_fintype_sprood');
-	        $contribution = $data['contribution'];
+	        $contribution = (float)$data['contribution'];
             if($data['payment_method'] != 'incasso')
                 $contribution += 1;
             break;
         case 'lid_rood':
             $membershipTypeId = variable_get('spaanmelden_id_lid_rood');
             $financialTypeId = variable_get('spaanmelden_id_fintype_rood');
-            $contribution = round($data['contribution'] / 4, 2);
+            $contribution = round((float)$data['contribution'] / 4, 2);
             break;
         case 'tribune':
             $membershipTypeId = variable_get('spaanmelden_id_abo_tribune');
-			$financialTypeId = variable_get('spaanmelden_id_fintype_tribune');
-	        $contribution = ($data['payment_method'] == 'incasso') ? 5 : 6;
+	    $financialTypeId = variable_get('spaanmelden_id_fintype_tribune');
+	    $contribution = ($data['payment_method'] == 'incasso') ? 5 : 6;
             break;
         case 'spanning':
             $membershipTypeId = variable_get('spaanmelden_id_abo_spanning');
-			$financialTypeId = variable_get('spaanmelden_id_fintype_spanning');
-	        $contribution = 6;
+	    $financialTypeId = variable_get('spaanmelden_id_fintype_spanning');
+	    $contribution = 6;
             break;
-	    default:
-		    throw new \Exception('CiviCRM API error: invalid membership type: ' . $data['membership_type'] . '.');
-		    break;
+	default:
+	    throw new \Exception('CiviCRM API error: invalid membership type: ' . $data['membership_type'] . '.');
+	    break;
     }
 
 	if($data['payment_method'] == 'incasso') {
@@ -885,7 +885,7 @@ function _spaanmelden_add_membership($data = []) {
 		'join_date'              => date('Ymdhis', $data['verified']),
 		'is_override'            => 1,
 		'status_id'              => variable_get('spaanmelden_id_status'),
-		'total_amount'           => $contribution,
+		'total_amount'           => number_format($contribution, 2, '.', ''),
 		'financial_type_id'      => $financialTypeId,
 		'contribution_status_id' => 2, // Pending
 		'payment_instrument_id'  => $paymentInstrument,
@@ -896,7 +896,7 @@ function _spaanmelden_add_membership($data = []) {
 		$membershipData['new_mandaat'] = 1;
 		$membershipData['mandaat_status'] = 'NEW';
 		$membershipData['mandaat_datum'] = date('Ymdhis', $data['verified']);
-		$membershipData['mandaat_plaats'] = $data['city'];
+		$membershipData['mandaat_plaats'] = ($data['city'] ? $data['city'] : '[Onbekend]');
 	}
 
     if(in_array($data['membership_type'], ['lid_sp', 'lid_sprood'])) {
@@ -920,6 +920,11 @@ function _spaanmelden_add_membership($data = []) {
     } else {
         $membershipData[$membershipSourceField] = _spaanmelden_get_source_website();
     }
+
+    $gezinslidField = variable_get('spaanmelden_id_custom_gezinslid');
+    $membershipData[$gezinslidField] = 0;
+    $welkomstbriefField = variable_get('spaanmelden_id_custom_welkomstbrief');
+    $membershipData[$welkomstbriefField] = 0;
 
     $api->Membership->spcreate($membershipData);
     $res = $api->result();

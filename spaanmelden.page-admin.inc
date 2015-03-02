@@ -218,6 +218,20 @@ function spaanmelden_admin_settings_form() {
         '#required'      => true,
     );
 
+    $form['spaanmelden_id_custom_gezinslid'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'Veldnaam gezinslid',
+        '#default_value' => variable_get('spaanmelden_id_custom_gezinslid', 'custom_127'),
+        '#required'      => true,
+    );
+
+    $form['spaanmelden_id_custom_welkomstbrief'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'Veldnaam welkomstbrief',
+        '#default_value' => variable_get('spaanmelden_id_custom_welkomstbrief', 'custom_125'),
+        '#required'      => true,
+    );
+
     return system_settings_form($form);
 }
 
