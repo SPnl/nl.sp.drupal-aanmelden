@@ -17,10 +17,12 @@ function spaanmelden_form_rood($form, &$form_state) {
 
 	$intro = variable_get('spaanmelden_text_rood');
 	if($intro) {
-		$form['introtext'] = [
-			'#markup' => $intro['value'],
-		];
-	}
+       $form['introduction'] = array(
+        '#prefix' => "<div class=\"introduction\">",
+        '#markup' => check_markup($intro['value'],$intro['format']),
+        '#suffix' => "</div>",
+      );
+    }
 
 	$form['ajax_container'] = [
 		'#prefix'   => '<div id="spaanmelden_form">',
