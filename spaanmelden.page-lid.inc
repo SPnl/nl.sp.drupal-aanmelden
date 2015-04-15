@@ -18,11 +18,12 @@ function spaanmelden_form_lid($form, &$form_state) {
 
     $intro = variable_get('spaanmelden_text_lid');
     if($intro) {
-        $form['introtext'] = array(
-            '#markup' => $intro['value'],
-        );
+       $form['introduction'] = array(
+        '#prefix' => "<div class=\"introduction\">",
+        '#markup' => check_markup($intro['value'],$intro['format']),
+        '#suffix' => "</div>",
+      );
     }
-
     $form['ajax_container'] = array(
         '#prefix'   => '<div id="spaanmelden_form">',
         '#suffix'   => '</div>',
