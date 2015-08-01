@@ -168,6 +168,11 @@ function spaanmelden_schema() {
                 'type'   => 'int',
                 'length' => 11,
             ),
+            'show_website'     => array(
+                'type'   => 'int',
+                'length' => 1,
+                'nullable' => true,
+            ),
         ),
         'primary key' => array('id'),
     );

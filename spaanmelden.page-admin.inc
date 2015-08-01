@@ -313,11 +313,26 @@ function spaanmelden_gifts_view($action = null, $id = null) {
     //Delete gift
     if($action == 'delete') {
         if(is_numeric($id)) {
-            $delete = db_delete('sp_aanmeldingen_gifts')->condition('id', $id)->execute();
-            if($delete) {
-                drupal_set_message(t('Welkomstgeschenk !1 is verwijderd.', array('!1' => $id)));
+
+            $chk = db_select('sp_aanmeldingen', 's')
+                    ->condition(db_or()->condition('welcome_present_sp', $id)->condition('welcome_present_rood', $id))
+                    ->countQuery()->execute()->fetchField();
+            if($chk > 0) {
+                drupal_set_message(t('Dit welkomstgeschenk is gekoppeld aan eerdere aanmeldingen, en is daarom niet verwijderd maar op inactief gezet.'));
+                db_update('sp_aanmeldingen_gifts')
+                    ->fields(array('show_website' => 0))
+                    ->condition('id', $id)
+                    ->execute();
             } else {
-                drupal_set_message(t('Het welkomstgeschenk kon niet worden verwijderd. Controleer de link en database-instellingen.'), $type = 'error');
+                $delete = db_delete('sp_aanmeldingen_gifts')
+                  ->condition('id', $id)
+                  ->execute();
+                if ($delete) {
+                    drupal_set_message(t('Welkomstgeschenk !1 is verwijderd.', array('!1' => $id)));
+                }
+                else {
+                    drupal_set_message(t('Het welkomstgeschenk kon niet worden verwijderd. Controleer de link en database-instellingen.'), $type = 'error');
+                }
             }
         }
     }
@@ -326,6 +341,7 @@ function spaanmelden_gifts_view($action = null, $id = null) {
     $header = array('id'              => 'ID',
                     'name'            => 'Naam',
                     'membership_type' => 'Lidmaatschap',
+        'show_website' => 'Getoond op site',
                     'options'         => 'Opties',
     );
     $data = array();
@@ -337,6 +353,7 @@ function spaanmelden_gifts_view($action = null, $id = null) {
             'id'      => $g->id,
             'name'    => $g->name,
             'type'    => _spaanmelden_membership_description($g->membership_type, true),
+            'show_website' => ($g->show_website ? 'ja' : 'nee'),
             'options' =>
                 l('Bewerken', 'admin/config/sp/aanmelden/gifts/edit/' . $g->id) . '&nbsp;&nbsp;&nbsp;' .
                 l('Verwijderen', 'admin/config/sp/aanmelden/gifts/delete/' . $g->id),
@@ -392,6 +409,14 @@ function spaanmelden_gifts_form($form = null, $form_state = null, $id = null) {
         '#description' => 'Kies of dit cadeau voor SP of ROOD wordt getoond.',
         '#required'    => true,
     );
+    $form['add_gift']['show_website'] = array(
+        '#type'        => 'select',
+        '#title'       => 'Tonen op website?',
+        '#options'     => array(1 => 'ja', 0 => 'nee'),
+        '#default_value' => 1,
+        '#description' => 'Kies of dit cadeau op de website moet worden getoond. Op het interne formulier worden alle cadeaus getoond.',
+        '#required'    => true,
+    );
 
     $weightOptions = array();
     for ($i = -20; $i <= 20; $i++)
@@ -424,6 +449,7 @@ function spaanmelden_gifts_form($form = null, $form_state = null, $id = null) {
         $form['add_gift']['internal_name']['#default_value'] = $default_values->internal_name;
         $form['add_gift']['membership_type']['#default_value'] = $default_values->membership_type;
         $form['add_gift']['position']['#default_value'] = $default_values->position;
+        $form['add_gift']['show_website']['#default_value'] = $default_values->show_website;
         $form['edit_flag'] = array('#type' => 'hidden', '#value' => check_plain($id));
         $form['submit']['#value'] = 'Opslaan';
     }
@@ -448,6 +474,7 @@ function spaanmelden_gifts_form_submit($form, &$form_state) {
             'internal_name'   => $form_state['values']['add_gift']['internal_name'],
             'membership_type' => $form_state['values']['add_gift']['membership_type'],
             'position'        => (int)$form_state['values']['add_gift']['position'],
+            'show_website'    => (int)$form_state['values']['add_gift']['show_website'],
         ))->condition('id', (int)$form_state['values']['edit_flag'])->execute();
 
         if($edit_gift) {
@@ -460,6 +487,7 @@ function spaanmelden_gifts_form_submit($form, &$form_state) {
             'internal_name'   => $form_state['values']['add_gift']['internal_name'],
             'membership_type' => $form_state['values']['add_gift']['membership_type'],
             'position'        => (int)$form_state['values']['add_gift']['position'],
+            'show_website'    => (int)$form_state['values']['add_gift']['show_website'],
         ))->execute();
         if($add_gift) {
             drupal_set_message('Het geschenk is toegevoegd.');

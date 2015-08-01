@@ -650,7 +650,7 @@ function spaanmelden_form_intern_form_membership($form, &$form_state) {
 	$form['member']['welcome_normal'] = array(
 		'#title'         => 'Welkomstcadeau SP',
 		'#type'          => 'select',
-		'#options'       => _spaanmelden_get_gifts('lid_sp'),
+		'#options'       => _spaanmelden_get_gifts('lid_sp', false),
 		'#default_value' => _spaanmelden_form_default_value($form_state, array('member', 'welcome_normal'), ''),
 		'#required'      => true,
 		'#access'        => in_array($membershipType, array('lid_sp', 'lid_sprood')),
@@ -659,7 +659,7 @@ function spaanmelden_form_intern_form_membership($form, &$form_state) {
 	$form['member']['welcome_rood'] = array(
 		'#title'         => 'Welkomstcadeau ROOD',
 		'#type'          => 'select',
-		'#options'       => _spaanmelden_get_gifts('lid_rood'),
+		'#options'       => _spaanmelden_get_gifts('lid_rood', false),
 		'#default_value' => _spaanmelden_form_default_value($form_state, array('member', 'welcome_rood'), ''),
 		'#required'      => true,
 		'#access'        => ($membershipType == 'lid_sprood'),

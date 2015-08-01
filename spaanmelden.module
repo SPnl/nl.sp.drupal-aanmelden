@@ -591,7 +591,7 @@ function _spaanmelden_get_country_ids() {
 }
 
 // Haal een lijst van welkomstcadeaus voor het SP- of ROOD-lidmaatschap op
-function _spaanmelden_get_gifts($groupName) {
+function _spaanmelden_get_gifts($groupName, $forWebsite = true) {
 
     $gifts = db_select('sp_aanmeldingen_gifts', 'sg')
         ->fields('sg')
@@ -603,6 +603,9 @@ function _spaanmelden_get_gifts($groupName) {
     $ret = [];
     if($gifts) {
         foreach ($gifts as $g) {
+            if($forWebsite && $g->show_website != 1)
+                continue;
+
             $ret[$g->id] = $g->name;
         }
     }
