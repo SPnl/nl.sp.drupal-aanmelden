@@ -611,7 +611,7 @@ function spaanmelden_form_intern_form_contact_validate($form, &$form_state) {
 
 	$email = drupal_array_get_nested_value($form_state['values'], array('contact', 'email'));
 	if (!empty($email)) {
-		if (preg_match('^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', $email)) {
+		if (!valid_email_address($email)) {
 			form_set_error('contact][email', 'Er is geen geldig e-mailadres ingevoerd.');
 		}
 	}
