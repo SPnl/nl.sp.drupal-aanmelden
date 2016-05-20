@@ -1,57 +1,61 @@
 <?php
 
 function spaanmelden_page_thanks() {
-    $name = base64_decode($_GET['name']);
+  $name = base64_decode($_GET['name']);
 
-    if(!drupal_valid_token($_GET['token'], $name, true)) {
-        return MENU_ACCESS_DENIED;
-    }
+  if(!drupal_valid_token($_GET['token'], $name, true)) {
+    return MENU_ACCESS_DENIED;
+  }
 
-    drupal_set_title($name . ', bedankt!');
+  drupal_set_title($name . ', bedankt!');
 
-    $ret = '<div class="lid-worden-bedankt content">';
-    $descr = _spaanmelden_membership_description($_GET['membership_type']);
-    $ret .= '<p>Bedankt voor je aanmelding als ' . $descr . '. ';
-    if(!in_array($_GET['membership_type'], array('tribune', 'spanning')))
-        $ret .= 'Goed dat je ons wilt steunen in de strijd voor een beter Nederland!<br />';
-    $ret .= 'Je ontvangt straks per e-mail een overzicht van de gegevens die je hebt opgegeven.<br />
-            Let op! De gegevens moet je nog wel even via een link in die e-mail bevestigen.</p>'
+  $ret = '<div class="lid-worden-bedankt content">';
+  $descr = _spaanmelden_membership_description($_GET['membership_type']);
+  $ret .= '<p>Bedankt voor je aanmelding als ' . $descr . '. ';
+  if(!in_array($_GET['membership_type'], array('tribune', 'spanning')))
+    $ret .= 'Goed dat je ons wilt steunen in de strijd voor een beter Nederland!<br />';
+  $ret .= 'Je ontvangt straks per e-mail een overzicht van de gegevens die je hebt opgegeven.<br />
+    Let op! De gegevens moet je nog wel even via een link in die e-mail bevestigen.</p>'
         . _spaanmelden_get_qline() . '</div>';
     return $ret;
 }
 
 function spaanmelden_page_error() {
-    return '<div class="lid-worden-bedankt content"><h1>Aanmelding niet verwerkt</h1><p>Excuus, maar het is
-     niet gelukt om je aanmelding goed te verwerken. Probeer het later nog eens, of neem even contact met ons
-      op.' . _spaanmelden_get_qline() . '</p></div>';
+  return '<div class="lid-worden-bedankt content"><h1>Aanmelding niet verwerkt</h1><p>Excuus, maar het is
+    niet gelukt om je aanmelding goed te verwerken. Probeer het later nog eens, of neem even contact met ons
+    op.' . _spaanmelden_get_qline() . '</p></div>';
 }
 
 function spaanmelden_page_validate($hash) {
 
-    $q = db_select('sp_aanmeldingen', 's')
-        ->fields('s')
-        ->condition('hash', $hash, '=')
-        ->execute();
-    if($q) {
-        $record = $q->fetchAssoc();
+  $q = db_select('sp_aanmeldingen', 's')
+    ->fields('s')
+    ->condition('hash', $hash, '=')
+    ->execute();
+  if($q) {
+    $record = $q->fetchAssoc();
+    watchdog('test', '<pre>'.print_r($record, TRUE).'</pre>');
 
-        $exec = db_update('sp_aanmeldingen')
-            ->fields(array(
-                'verified' => time()
-            ))
-            ->condition('hash', $hash, '=')
-            ->execute();
+    $exec = db_update('sp_aanmeldingen')
+      ->fields(array(
+        'verified' => time()
+      ))
+      ->condition('hash', $hash, '=')
+      ->execute();
 
-        if($exec) {
-            return '<div class="lid-worden-bedankt content"><h1>Aanmelding bevestigd</h1><p>Bedankt voor
-                het bevestigen van je gegevens. Je aanmelding wordt zo spoedig mogelijk verwerkt door onze
-                 ledenadministratie.</p>' . _spaanmelden_get_qline() . '</div>';
-        }
+    if($exec) {
+      $output = '<div class="lid-worden-bedankt content"><h1>Aanmelding bevestigd</h1><p>Bedankt voor het bevestigen van je gegevens. Je aanmelding wordt zo spoedig mogelijk verwerkt door onze ledenadministratie.</p>';
+      if (in_array($record['membership_type'], array('lid_rood', 'lid_sprood'))) {
+        $output .= drupal_render(drupal_get_form('spaanmelden_page_validate_question_form', $record));
+      }
+      $output .= _spaanmelden_get_qline() . '</div>';
+      return $output;
     }
+  }
 
-    return '<div class="lid-worden-bedankt content"><h1>Aanmelding niet bevestigd</h1><p>Er is een fout
-     opgetreden bij het verwerken van je aanvraag. Controleer of de link die je gevolgd hebt klopt, en kopieer
-      deze eventueel handmatig uit de e-mail.</p>' . _spaanmelden_get_qline() . '</div>';
+  return '<div class="lid-worden-bedankt content"><h1>Aanmelding niet bevestigd</h1><p>Er is een fout
+    opgetreden bij het verwerken van je aanvraag. Controleer of de link die je gevolgd hebt klopt, en kopieer
+    deze eventueel handmatig uit de e-mail.</p>' . _spaanmelden_get_qline() . '</div>';
 
 }
 
@@ -65,4 +69,68 @@ function spaanmelden_page_postcode() {
 
     drupal_json_output($data);
 }
-*/
+ */
+
+function spaanmelden_page_validate_question_form($form, &$form_state, $record) {
+  // Store membership values.
+  if (!empty($record)) {
+    $form_state['membership_record'] = $record;
+  }
+
+  $form = array(
+    '#prefix' => '<div id ="question-form">',
+    '#suffix' => '</div>',
+  );
+  if (empty($form_state['values']['why_member'])) {
+    $form['why_member'] = array(
+      '#type' => 'textarea',
+      '#title' => !empty($record['firstname']) ? check_plain($record['firstname']) . ', waarom ben je juist nu lid geworden?' : 'Waarom ben je juist nu lid geworden?',
+    );
+    $form['submit'] = array(
+      '#type' => 'button',
+      '#value' => 'Indienen',
+      '#name' => 'submit',
+      '#ajax' => array(
+        'callback' => 'spaanmelden_page_validate_question_form_ajax_callback',
+        'wrapper' => 'question-form',
+        'method' => 'replace',
+      ),
+    );
+  }
+  else {
+    $form['thanks'] = array(
+      '#markup' => '<p><strong>Bedankt voor de feedback!</strong></p>',
+    );
+  }
+  return $form;
+}
+
+function spaanmelden_page_validate_question_form_validate($form, &$form_state) {
+  if (!empty($form_state['membership_record'])) {
+    $record = $form_state['membership_record'];
+    if (empty($form_state['values']['why_member'])) {
+      form_set_error('why_member', 'Ben je vergeten iets in te vullen?');
+      return;
+    }
+    if (!empty($form_state['triggering_element']['#name'])) {
+      switch ($form_state['triggering_element']['#name']) {
+      case 'submit':
+        drupal_set_message('<pre>'.print_r($record, TRUE).'</pre>');
+        spaanmelden_create_note($contact_id, $note);
+        $form_state['rebuild'] = TRUE;
+        break;
+      }
+    }
+  }
+  else {
+    form_set_error('why_member', 'Er is iets misgegaan met het opslaan van de lidgegevens.');
+    return;
+  }
+}
+
+function spaanmelden_page_validate_question_form_ajax_callback($form, &$form_state) {
+  return $form;
+}
+
+function spaanmelden_create_note($contact_id, $note) {
+}
