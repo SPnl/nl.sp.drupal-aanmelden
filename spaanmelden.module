@@ -958,6 +958,11 @@ function _spaanmelden_add_membership($data = []) {
         throw new \Exception('CiviCRM API error (Activity): ' . $res->error_message);
     }
 
+    // Add note.
+    if (!empty($data['note'])) {
+      spaanmelden_create_note($contact_id, $data['note']);
+    }
+
     return $contact_id;
 }
 
@@ -1032,4 +1037,30 @@ function _spaanmelden_friendly_field_data($key, $value, $activity = false) {
                 return ['CiviCRM-ID', $value . '&nbsp;&nbsp;&nbsp; <a href="' . variable_get('spciviapi_civicrm_server') . '/civicrm/contact/view?reset=1&cid=' . $value . '">Bekijk contact in CiviCRM</a>'];
             return [null, null];
     }
+}
+
+function spaanmelden_create_note($contact_id, $note) {
+  $api = spciviapi_get_api();
+  $params = array(
+    'version' => 3,
+    'entity_id' => $contact_id,
+    'note' => $note,
+    'subject' => 'Waarom nu lid?',
+  );
+  $api->Note->create($params);
+  $result = $api->result();
+  if(!$result || $result->is_error || !$result->id) {
+    drupal_set_message('Er is iets misgegaan met het opslaan van de informatie. Neem contact op met webmaster@sp.nl.', 'error');
+    throw new \Exception('CiviCRM API error (Note): ' . $result->error_message);
+    return null;
+  }
+}
+
+function spaanmelden_store_note($hash, $note) {
+  $num = db_update('sp_aanmeldingen')
+    ->fields(array(
+      'note' => $note,
+    ))
+    ->condition('hash', $hash)
+    ->execute();
 }

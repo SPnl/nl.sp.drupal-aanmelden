@@ -180,4 +180,14 @@ function spaanmelden_schema() {
     return $schema;
 }
 
-
+/**
+* Adds note to aanmelding. 
+*/
+function spaanmelden_update_7100(&$sandbox) {
+  $field = array(
+      'type' => 'text',
+      'not null' => FALSE,
+      'description' => 'A note to store in CiviCRM.',
+      );
+  db_add_field('sp_aanmeldingen', 'note', $field);
+}

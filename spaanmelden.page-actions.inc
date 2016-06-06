@@ -36,18 +36,25 @@ function spaanmelden_page_validate($hash) {
     $record = $q->fetchAssoc();
     watchdog('test', '<pre>'.print_r($record, TRUE).'</pre>');
 
-    $exec = db_update('sp_aanmeldingen')
-      ->fields(array(
-        'verified' => time()
-      ))
-      ->condition('hash', $hash, '=')
-      ->execute();
+    if (empty($record['verified'])) {
+      $exec = db_update('sp_aanmeldingen')
+        ->fields(array(
+          'verified' => time()
+        ))
+        ->condition('hash', $hash, '=')
+        ->execute();
 
-    if($exec) {
-      $output = '<div class="lid-worden-bedankt content"><h1>Aanmelding bevestigd</h1><p>Bedankt voor het bevestigen van je gegevens. Je aanmelding wordt zo spoedig mogelijk verwerkt door onze ledenadministratie.</p>';
-      if (in_array($record['membership_type'], array('lid_rood', 'lid_sprood'))) {
-        $output .= drupal_render(drupal_get_form('spaanmelden_page_validate_question_form', $record));
+      if($exec) {
+        $output = '<div class="lid-worden-bedankt content"><h1>Aanmelding bevestigd</h1><p>Bedankt voor het bevestigen van je gegevens. Je aanmelding wordt zo spoedig mogelijk verwerkt door onze ledenadministratie.</p>';
+        if (in_array($record['membership_type'], array('lid_rood', 'lid_sprood'))) {
+          $output .= drupal_render(drupal_get_form('spaanmelden_page_validate_question_form', $record));
+        }
+        $output .= _spaanmelden_get_qline() . '</div>';
+        return $output;
       }
+    }
+    else {
+      $output = '<div class="lid-worden-bedankt content"><h1>Aanmelding reeds bevestigd</h1><p>Bedankt, je aanmelding was reeds bevestigd en wordt zo spoedig mogelijk verwerkt door onze ledenadministratie.</p>';
       $output .= _spaanmelden_get_qline() . '</div>';
       return $output;
     }
@@ -115,9 +122,11 @@ function spaanmelden_page_validate_question_form_validate($form, &$form_state) {
     if (!empty($form_state['triggering_element']['#name'])) {
       switch ($form_state['triggering_element']['#name']) {
       case 'submit':
-        //drupal_set_message('<pre>'.print_r($record, TRUE).'</pre>');
         $note = '<p>Waarom ben je juist nu lid geworden?<br/>'.check_plain($form_state['values']['why_member']).'</p>';
-        spaanmelden_create_note($record['contact_id'], $note);
+        spaanmelden_store_note($record['hash'], $note);
+        if (!empty($record['contact_id'])) {
+          spaanmelden_create_note($record['contact_id'], $note);
+        }
         $form_state['rebuild'] = TRUE;
         break;
       }
@@ -131,20 +140,4 @@ function spaanmelden_page_validate_question_form_validate($form, &$form_state) {
 
 function spaanmelden_page_validate_question_form_ajax_callback($form, &$form_state) {
   return $form;
-}
-
-function spaanmelden_create_note($contact_id, $note) {
-  civicrm_initialize();
-  require_once 'api/api.php';
-  $params = array(
-    'version' => 3,
-    'entity_id' => $contact_id,
-    'note' => $note,
-    'subject' => 'Waarom nu lid?',
-  );
-
-  $result = civicrm_api('Note', 'create', $params);
-  if ($result['is_error'] || empty($result['id']) || empty($result['values'][$result['id']])) {
-    drupal_set_message('Er is iets misgegaan met het opslaan van de informatie. Neem contact op met webmaster@sp.nl.', 'error');
-  }
 }
