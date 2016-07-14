@@ -731,7 +731,7 @@ function spaanmelden_form_intern_form_membership($form, &$form_state) {
 		'#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'bank_account'), ''),
 		'#required'      => true,
 		'#access'        => ($paymentMethod == 'incasso'),
-		'#description'   => '<p><small>Vind het IBAN nummer op de site <a href="https://www.ibanbicservice.nl/SingleRequest.aspx" target="_blank">IBAN BIC Service</a></small></p>',
+		'#description'   => '<p>Vind uw IBAN nummer op de site <a href="http://www.openiban.nl/" target="_blank">OpenIBAN</a></p>',
 	);
 
 	return $form;

@@ -570,7 +570,7 @@ function spaanmelden_form_tribune_form_payment($form, &$form_state) {
         '#default_value' => _spaanmelden_form_default_value($form_state, array('payment', 'bank_account'), ''),
         '#required'      => true,
         '#access'        => _spaanmelden_form_is_incasso($form_state),
-        '#description'   => '<p><small>Vind uw IBAN nummer op de site <a href="https://www.ibanbicservice.nl/SingleRequest.aspx" target="_blank">IBAN BIC Service</a></small></p>',
+	'#description'   => '<p>Vind uw IBAN nummer op de site <a href="http://www.openiban.nl/" target="_blank">OpenIBAN</a></p>',
     );
 
     return $form;
