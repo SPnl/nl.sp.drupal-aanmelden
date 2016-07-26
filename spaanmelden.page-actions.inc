@@ -122,7 +122,7 @@ function spaanmelden_page_validate_question_form_validate($form, &$form_state) {
     if (!empty($form_state['triggering_element']['#name'])) {
       switch ($form_state['triggering_element']['#name']) {
       case 'submit':
-        $note = '<p>Waarom ben je juist nu lid geworden?<br/>'.check_plain($form_state['values']['why_member']).'</p>';
+        $note = check_plain($form_state['values']['why_member']);
         spaanmelden_store_note($record['hash'], $note);
         if (!empty($record['contact_id'])) {
           spaanmelden_create_note($record['contact_id'], $note);
