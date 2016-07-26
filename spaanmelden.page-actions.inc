@@ -34,7 +34,6 @@ function spaanmelden_page_validate($hash) {
     ->execute();
   if($q) {
     $record = $q->fetchAssoc();
-    watchdog('test', '<pre>'.print_r($record, TRUE).'</pre>');
 
     if (empty($record['verified'])) {
       $exec = db_update('sp_aanmeldingen')
