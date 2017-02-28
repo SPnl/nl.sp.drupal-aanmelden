@@ -638,7 +638,7 @@ function spaanmelden_form_rood_form_donation($form, &$form_state) {
 	$showm = _spaanmelden_form_rood_available_memberships($form_state);
 
 	$form['payment']['contribution'] = [
-		'#title'         => 'Bijdrage per ' . ((!$showm['SP'] && $showm['ROOD']) ? 'jaar' : 'kwrataal'),
+		'#title'         => 'Bijdrage per ' . ((!$showm['SP'] && $showm['ROOD']) ? 'jaar' : 'kwartaal'),
 		'#type'          => 'radios',
 		'#options'       => [
 			'500'   => '&euro; 5,00 (minimum)', '750' => '&euro; 7,50',
