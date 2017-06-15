@@ -13,7 +13,7 @@ function spaanmelden_menu() {
     $items = [];
 
     $items['aanmelden/lid'] = [
-        'title'           => 'Lid worden',
+        'title'           => 'Lid worden van de SP',
         'type'            => MENU_SUGGESTED_ITEM,
         'page callback'   => 'spaanmelden_page_lid',
         'access callback' => true,

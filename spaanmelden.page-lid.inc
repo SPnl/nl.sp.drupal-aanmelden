@@ -19,7 +19,7 @@ function spaanmelden_form_lid($form, &$form_state) {
     $intro = variable_get('spaanmelden_text_lid');
     if($intro) {
        $form['introduction'] = array(
-        '#prefix' => "<div class=\"introduction\">",
+        '#prefix' => "<div class=\"introduction body\">",
         '#markup' => check_markup($intro['value'],$intro['format']),
         '#suffix' => "</div>",
       );
