@@ -1,7 +1,6 @@
 {
   "name": "SPnl/nl.sp.drupal-aanmelden",
   "description": "Aanmeldformulieren om SP-lid of abonnee te worden op SP.nl.",
-  "version": "1.0",
   "type": "drupal-module",
   "authors": [
     {
