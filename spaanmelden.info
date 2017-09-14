@@ -1,6 +1,6 @@
 name = SP Aanmeldformulieren
 description = Aanmeldformulieren om SP-lid of abonnee te worden op SP.nl
-version = 1.0
+version = 1.0.1
 core = 7.x
 package = sprbs
 
