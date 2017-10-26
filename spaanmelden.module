@@ -897,7 +897,7 @@ function _spaanmelden_add_membership($data = []) {
 	];
 	if($data['payment_method'] == 'incasso' && $data['bank_account']) {
 		$membershipData['new_mandaat'] = 1;
-		$membershipData['mandaat_status'] = 'FRST';
+		$membershipData['mandaat_status'] = 'RCUR';
 		$membershipData['mandaat_datum'] = date('Ymdhis', $data['verified']);
 		$membershipData['mandaat_plaats'] = ($data['city'] ? $data['city'] : '[Onbekend]');
 	}
