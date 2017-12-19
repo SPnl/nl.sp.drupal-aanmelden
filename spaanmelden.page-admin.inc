@@ -232,6 +232,13 @@ function spaanmelden_admin_settings_form() {
         '#required'      => true,
     );
 
+    $form['spaanmelden_id_custom_reden_lidmaatschap'] = array(
+        '#type'          => 'textfield',
+        '#title'         => 'Veldnaam reden lidmaatschap',
+        '#default_value' => variable_get('spaanmelden_id_custom_reden_lidmaatschap', 'custom_218'),
+        '#required'      => true,
+    );
+
     return system_settings_form($form);
 }
 
