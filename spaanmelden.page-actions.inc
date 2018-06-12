@@ -44,7 +44,7 @@ function spaanmelden_page_validate($hash) {
         ->execute();
 
       if($exec) {
-        $output = '<div class="lid-worden-bedankt content"><h1>Aanmelding bevestigd</h1><p>Bedankt voor het bevestigen van je gegevens. Je aanmelding wordt zo spoedig mogelijk verwerkt door onze ledenadministratie.</p>';
+        $output = '<div class="lid-worden-bedankt content"><h1>Aanmelding bevestigd</h1><p>Bedankt voor het bevestigen van je gegevens. Je aanmelding wordt zo spoedig mogelijk verwerkt door onze ledenadministratie.</p><p>Zou je ons nog willen vertellen waarom je lid bent geworden?</p>';
         if (in_array($record['membership_type'], array('lid_rood', 'lid_sprood', 'lid_sp'))) {
           $output .= drupal_render(drupal_get_form('spaanmelden_page_validate_question_form', $record));
         }
@@ -115,7 +115,7 @@ function spaanmelden_page_validate_question_form_validate($form, &$form_state) {
   if (!empty($form_state['membership_record'])) {
     $record = $form_state['membership_record'];
     if (empty($form_state['values']['why_member'])) {
-      form_set_error('why_member', 'Ben je vergeten iets in te vullen?');
+      form_set_error('why_member', 'Je aanmelding is reeds bevestigd. Het doorgeven van je reden om lid te worden is optioneel. Als je dit wil moet je wel iets invullen.');
       return;
     }
     if (!empty($form_state['triggering_element']['#name'])) {
